@@ -45,17 +45,19 @@ A rota `/candidatos` não é linkada em nenhum lugar do site — é acessada som
 | Coluna | Tipo | Descrição |
 |---|---|---|
 | id | uuid (PK) | Identificador único |
-| nome | text | Nome do candidato (aparece na votação) |
-| frase | text | Frase de campanha (máx. 80 chars) |
+| nome | text **UNIQUE** (normalizado) | Nome do candidato (aparece na votação) |
+| frase | text | Frase de campanha — `CHECK (char_length(frase) <= 80)` |
 | foto_url | text | URL pública da foto no Supabase Storage |
 | created_at | timestamptz | Data de cadastro |
+
+Normalização de `nome`: `trim()` + `toLowerCase()` aplicados server-side antes de insert e checagem. `409 Conflict` retornado se nome já existir.
 
 ### Tabela: `votos`
 | Coluna | Tipo | Descrição |
 |---|---|---|
 | id | uuid (PK) | Identificador único |
-| candidato_id | uuid (FK → candidatos.id) | Candidato escolhido |
-| nome_votante | text | Nome digitado pelo votante |
+| candidato_id | uuid (FK → candidatos.id, **ON DELETE RESTRICT**) | Candidato escolhido |
+| nome_votante | text | Nome normalizado (trim + lowercase) — `UNIQUE` |
 | created_at | timestamptz | Data/hora do voto |
 
 ### Tabela: `config`
@@ -73,25 +75,31 @@ A tabela `config` tem exatamente 1 linha, editada diretamente no painel do Supab
 
 - `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_URL` existem **somente** em `.env.local` (servidor)
 - O browser nunca recebe credenciais do Supabase — toda comunicação é via Route Handlers do Next.js
-- Upload de foto: browser envia o arquivo para `/api/upload` → servidor faz o upload para Supabase Storage → retorna a URL pública
-- Não há autenticação de usuário — a proteção da rota `/candidatos` é por obscuridade (link não divulgado)
+- Upload de foto: browser envia o arquivo para `/api/upload` → servidor valida tipo (`image/*`) e tamanho (máx. 5 MB) → faz upload para Supabase Storage → retorna URL pública
+- **Proteção de `/candidatos`:** a rota exige um query param `?secret=VALOR` que deve casar com a variável de ambiente `CANDIDATO_SECRET`. Sem o secret correto, retorna `403`. O organizador inclui o secret no link enviado aos candidatos
+- `POST /api/candidatos` aplica o mesmo check de `CANDIDATO_SECRET` via header ou query param
+- Máximo de **20 candidatos** enforçado server-side em `POST /api/candidatos` (conta registros existentes antes de inserir)
+- **Rate limiting:** todos os endpoints `POST` (`/api/votos`, `/api/candidatos`, `/api/upload`) usam `@upstash/ratelimit` com Redis (Upstash free tier). Limite: **10 requests/minuto por IP** em `/api/votos`, **5 requests/minuto por IP** em `/api/candidatos` e `/api/upload`. Retorna `429 Too Many Requests` quando excedido
 
 ---
 
 ## 6. Controle de Votação Duplicada
 
-- Ao votar com sucesso, o browser salva `{ voted: true, timestamp }` em `localStorage`
-- A página `/votar` lê o `localStorage` no carregamento — se `voted: true`, exibe tela "Você já votou" sem carregar o formulário
-- Não há verificação server-side de duplicidade (controle apenas por dispositivo/browser)
+- Ao votar com sucesso, o browser salva `{ voted: true, timestamp }` em `localStorage` — usado como otimização de UX para pular o formulário na próxima visita
+- **Server-side:** a tabela `votos` tem `UNIQUE CONSTRAINT` em `nome_votante` (após normalização). O `POST /api/votos` retorna `409 Conflict` se o nome já constar na tabela
+- **Normalização do nome:** antes da inserção e da checagem, o servidor aplica `trim()` + `toLowerCase()` para evitar duplicatas por variação de caixa/espaços
+- O campo de nome é exibido no bottom sheet de confirmação para o votante revisar antes de enviar
 
 ---
 
 ## 7. Controle de Data/Hora
 
-- A página `/votar` chama `/api/config` para obter `votacao_inicio`
-- Se `Date.now() < votacao_inicio`, exibe tela de bloqueio com contagem regressiva em tempo real
+- A página `/votar` chama `/api/config` para obter `votacao_inicio` e `votacao_fim`
+- `GET /api/config` responde com `Cache-Control: public, max-age=30` para reduzir leituras desnecessárias no Supabase
+- Se `Date.now() < votacao_inicio`, exibe tela de bloqueio com contagem regressiva em tempo real via `setInterval`
 - Se `votacao_fim` estiver definido e `Date.now() > votacao_fim`, exibe tela "Votação encerrada"
-- A contagem regressiva atualiza a cada segundo via `setInterval`
+- **Server-side:** `POST /api/votos` consulta a tabela `config` e rejeita com `403 Forbidden` se `now() < votacao_inicio` ou `now() > votacao_fim` (quando definido)
+- **Comportamento de `votacao_fim = NULL`:** significa que a votação não tem prazo de encerramento — permanece aberta indefinidamente após `votacao_inicio`
 
 ---
 
@@ -153,10 +161,13 @@ A tabela `config` tem exatamente 1 linha, editada diretamente no painel do Supab
 ```env
 SUPABASE_URL=...
 SUPABASE_SERVICE_ROLE_KEY=...
-NEXT_PUBLIC_APP_URL=...
+CANDIDATO_SECRET=...
+UPSTASH_REDIS_REST_URL=...
+UPSTASH_REDIS_REST_TOKEN=...
 ```
 
-`NEXT_PUBLIC_APP_URL` é usado apenas para referências de URL interna. Nenhuma variável `NEXT_PUBLIC_SUPABASE_*` é exposta ao cliente.
+- `CANDIDATO_SECRET`: string secreta incluída no link de cadastro (`/candidatos?secret=VALOR`). O organizador gera um valor forte e inclui no link enviado aos candidatos.
+- Nenhuma variável `NEXT_PUBLIC_SUPABASE_*` é exposta ao cliente.
 
 ---
 
