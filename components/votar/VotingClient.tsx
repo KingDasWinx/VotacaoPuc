@@ -113,7 +113,7 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
   }
 
   if (screen === 'loading') return null
-  if (screen === 'blocked') return <BlockedScreen votacaoInicio={config.votacao_inicio} onOpen={() => setScreen('voting')} />
+  if (screen === 'blocked') return <BlockedScreen votacaoInicio={config.votacao_inicio} onOpen={fetchData} />
   if (screen === 'ended') return <BlockedScreen votacaoInicio={config.votacao_inicio} ended />
   if (screen === 'already-voted') return <AlreadyVotedScreen />
   if (screen === 'success') return <SuccessScreen />

@@ -10,7 +10,9 @@ export default function AlreadyVotedScreen() {
       <div className="md:flex-1 md:flex md:items-center md:justify-center p-4 md:p-12">
         <div className="bg-white rounded shadow-md overflow-hidden w-full md:max-w-md">
           <div className="bg-puc-bordeaux px-6 py-10 text-center">
-            <div className="text-5xl mb-3">🗳️</div>
+            <div className="flex justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M9 12l2 2 4-4"/><path d="M20 12V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7"/><path d="m16 19 2 2 4-4"/></svg>
+            </div>
             <h2 className="text-white text-2xl font-black uppercase tracking-wide mb-2">Voto Registrado!</h2>
             <p className="text-white/75 text-sm">Sua participação faz a diferença.</p>
           </div>

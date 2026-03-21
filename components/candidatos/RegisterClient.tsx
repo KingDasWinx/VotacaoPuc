@@ -20,7 +20,9 @@ export default function RegisterClient({ secret }: RegisterClientProps) {
       <div className="p-4">
         <div className="bg-white rounded shadow-md overflow-hidden">
           <div className="bg-puc-bordeaux px-6 py-10 text-center">
-            <div className="text-5xl mb-3">🎉</div>
+            <div className="flex justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.123 2.123 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.123 2.123 0 0 0 1.597-1.16z"/></svg>
+            </div>
             <h2 className="text-white text-2xl font-black uppercase tracking-wide mb-2">Cadastro Realizado!</h2>
             <p className="text-white/75 text-sm">Boa sorte na eleição!</p>
           </div>

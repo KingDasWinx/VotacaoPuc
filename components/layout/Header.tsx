@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 interface HeaderProps {
   badge?: string
 }
@@ -6,8 +8,8 @@ export default function Header({ badge = 'Eleição 2026' }: HeaderProps) {
   return (
     <header className="bg-white border-b-[3px] border-puc-bordeaux px-5 md:px-10 py-3.5 flex items-center justify-between">
       <div className="flex items-center gap-2.5">
-        <div className="w-11 h-11 bg-puc-bordeaux rounded flex items-center justify-center text-white font-black text-sm tracking-tight leading-none">
-          PUC
+        <div className="w-11 h-11 relative flex-shrink-0 rounded-lg overflow-hidden">
+          <Image src="/image.png" alt="PUCPR" fill className="object-contain" sizes="44px" />
         </div>
         <div>
           <div className="text-puc-bordeaux text-[22px] font-black tracking-wide leading-none">PUCPR</div>
