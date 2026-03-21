@@ -14,9 +14,9 @@ export default function CandidateList({ candidatos, selectedId, onSelect }: Cand
         <div className="w-1 h-[22px] bg-puc-bordeaux rounded-sm" />
         <h2 className="text-[13px] font-extrabold uppercase tracking-[1.5px] text-gray-800">Candidatos</h2>
       </div>
-      <div className="px-4 flex flex-col gap-3.5 pb-32">
+      <div className="px-4 grid grid-cols-1 md:grid-cols-2 gap-3.5 pb-32 md:pb-8">
         {candidatos.length === 0 && (
-          <p className="text-gray-400 text-sm text-center py-8">Nenhum candidato cadastrado ainda.</p>
+          <p className="text-gray-400 text-sm text-center py-8 col-span-full">Nenhum candidato cadastrado ainda.</p>
         )}
         {candidatos.map((c) => (
           <CandidateCard key={c.id} candidato={c} selected={selectedId === c.id} onSelect={onSelect} />

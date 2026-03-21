@@ -1,14 +1,14 @@
 export default function AlreadyVotedScreen() {
   return (
-    <div>
-      <div className="bg-puc-bordeaux px-5 pt-10 pb-8 relative overflow-hidden">
+    <div className="md:flex md:min-h-[calc(100vh-88px)]">
+      <div className="bg-puc-bordeaux px-5 pt-10 pb-8 md:w-80 md:flex-shrink-0 md:px-10 md:pt-16 relative overflow-hidden">
         <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-[#A50040] rounded-full opacity-50" />
-        <h1 className="text-white text-[32px] font-black uppercase leading-[1.05] mb-2 relative z-10">
+        <h1 className="text-white text-[32px] md:text-[40px] font-black uppercase leading-[1.05] mb-2 relative z-10">
           OBRIGADO<br />PELO <span className="text-pink-300">VOTO!</span>
         </h1>
       </div>
-      <div className="p-4">
-        <div className="bg-white rounded shadow-md overflow-hidden">
+      <div className="md:flex-1 md:flex md:items-center md:justify-center p-4 md:p-12">
+        <div className="bg-white rounded shadow-md overflow-hidden w-full md:max-w-md">
           <div className="bg-puc-bordeaux px-6 py-10 text-center">
             <div className="text-5xl mb-3">🗳️</div>
             <h2 className="text-white text-2xl font-black uppercase tracking-wide mb-2">Voto Registrado!</h2>

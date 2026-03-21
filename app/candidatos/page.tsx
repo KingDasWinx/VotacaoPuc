@@ -34,19 +34,27 @@ export default async function CandidatosPage({
     <>
       <TopBar />
       <Header badge="Candidatura" />
-      <div className="bg-puc-bordeaux px-5 pt-10 pb-8 relative overflow-hidden mb-6">
-        <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-[#A50040] rounded-full opacity-50" />
-        <p className="text-white/70 text-[10px] font-bold tracking-[3px] uppercase mb-2 relative z-10">Candidatura</p>
-        <h1 className="text-white text-[32px] font-black uppercase leading-[1.05] mb-2 relative z-10">
-          CADASTRE<br />SUA <span className="text-pink-300">CHAPA</span>
-        </h1>
-        <p className="text-white/80 text-sm font-medium relative z-10">Preencha seus dados para concorrer à liderança de turma.</p>
+      <div className="md:flex md:min-h-[calc(100vh-88px)]">
+        {/* Left hero */}
+        <div className="bg-puc-bordeaux px-5 pt-10 pb-8 md:w-80 md:flex-shrink-0 md:px-10 md:pt-16 relative overflow-hidden">
+          <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-[#A50040] rounded-full opacity-50" />
+          <p className="text-white/70 text-[10px] font-bold tracking-[3px] uppercase mb-2 relative z-10">Candidatura</p>
+          <h1 className="text-white text-[32px] md:text-[40px] font-black uppercase leading-[1.05] mb-2 relative z-10">
+            CADASTRE<br />SUA <span className="text-pink-300">CHAPA</span>
+          </h1>
+          <p className="text-white/80 text-sm font-medium relative z-10">Preencha seus dados para concorrer à liderança de turma.</p>
+        </div>
+        {/* Right form */}
+        <div className="md:flex-1 md:flex md:items-start md:justify-center md:pt-10 md:px-8">
+          <div className="w-full md:max-w-lg">
+            <div className="flex items-center gap-2.5 px-4 py-4 md:px-0">
+              <div className="w-1 h-[22px] bg-puc-bordeaux rounded-sm" />
+              <h2 className="text-[13px] font-extrabold uppercase tracking-[1.5px] text-gray-800">Seus dados</h2>
+            </div>
+            <RegisterClient secret={secret} />
+          </div>
+        </div>
       </div>
-      <div className="flex items-center gap-2.5 px-4 pb-4">
-        <div className="w-1 h-[22px] bg-puc-bordeaux rounded-sm" />
-        <h2 className="text-[13px] font-extrabold uppercase tracking-[1.5px] text-gray-800">Seus dados</h2>
-      </div>
-      <RegisterClient secret={secret} />
     </>
   )
 }

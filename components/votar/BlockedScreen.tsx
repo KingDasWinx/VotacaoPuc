@@ -5,20 +5,21 @@ import { useEffect, useState } from 'react'
 interface BlockedScreenProps {
   votacaoInicio: string
   ended?: boolean
+  onOpen?: () => void
 }
 
 function pad(n: number) {
   return String(n).padStart(2, '0')
 }
 
-export default function BlockedScreen({ votacaoInicio, ended }: BlockedScreenProps) {
+export default function BlockedScreen({ votacaoInicio, ended, onOpen }: BlockedScreenProps) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 
   useEffect(() => {
     if (ended) return
     function update() {
       const diff = new Date(votacaoInicio).getTime() - Date.now()
-      if (diff <= 0) { window.location.reload(); return }
+      if (diff <= 0) { onOpen?.(); return }
       setTimeLeft({
         days: Math.floor(diff / 86400000),
         hours: Math.floor((diff % 86400000) / 3600000),
@@ -36,17 +37,17 @@ export default function BlockedScreen({ votacaoInicio, ended }: BlockedScreenPro
   })
 
   return (
-    <div>
-      <div className="bg-puc-bordeaux px-5 pt-10 pb-8 relative overflow-hidden">
+    <div className="md:flex md:min-h-[calc(100vh-88px)]">
+      <div className="bg-puc-bordeaux px-5 pt-10 pb-8 md:w-80 md:flex-shrink-0 md:px-10 md:pt-16 relative overflow-hidden">
         <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-[#A50040] rounded-full opacity-50" />
         <p className="text-white/70 text-[10px] font-bold tracking-[3px] uppercase mb-2">Eleição de Liderança</p>
-        <h1 className="text-white text-[32px] font-black uppercase leading-[1.05] mb-2 relative z-10">
+        <h1 className="text-white text-[32px] md:text-[40px] font-black uppercase leading-[1.05] mb-2 relative z-10">
           LÍDER<br />DE <span className="text-pink-300">TURMA</span>
         </h1>
         <p className="text-white/80 text-sm font-medium relative z-10">Sua voz define quem vai te representar neste semestre.</p>
       </div>
-      <div className="p-4">
-        <div className="bg-white rounded shadow-md overflow-hidden">
+      <div className="md:flex-1 md:flex md:items-center md:justify-center p-4 md:p-12">
+        <div className="bg-white rounded shadow-md overflow-hidden w-full md:max-w-md">
           <div className="bg-puc-bordeaux px-6 py-8 text-center">
             <h2 className="text-white text-xl font-black uppercase tracking-wide mb-1">
               {ended ? 'Votação Encerrada' : 'Votação Fechada'}
