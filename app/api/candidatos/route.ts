@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields: nome, frase, foto_url' }, { status: 400 })
   }
 
-  if (frase.length > 80) {
-    return NextResponse.json({ error: 'frase must be 80 characters or less' }, { status: 400 })
+  if (frase.length > 30) {
+    return NextResponse.json({ error: 'frase must be 30 characters or less' }, { status: 400 })
   }
 
   const nomeNorm = normalizeName(nome)

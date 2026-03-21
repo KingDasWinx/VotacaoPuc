@@ -35,10 +35,15 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { candidato_id, nome_votante } = body
+  const { candidato_id, nome_votante, cpf } = body
 
-  if (!candidato_id || !nome_votante) {
-    return NextResponse.json({ error: 'Missing required fields: candidato_id, nome_votante' }, { status: 400 })
+  if (!candidato_id || !nome_votante || !cpf) {
+    return NextResponse.json({ error: 'Missing required fields: candidato_id, nome_votante, cpf' }, { status: 400 })
+  }
+
+  const cpfDigits = String(cpf).replace(/\D/g, '')
+  if (cpfDigits.length !== 11) {
+    return NextResponse.json({ error: 'CPF inválido' }, { status: 400 })
   }
 
   const nomeNorm = normalizeName(nome_votante)
@@ -60,7 +65,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('votos')
-    .insert({ candidato_id, nome_votante: nomeNorm })
+    .insert({ candidato_id, nome_votante: nomeNorm, cpf: cpfDigits })
     .select()
     .single()
 

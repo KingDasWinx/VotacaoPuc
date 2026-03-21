@@ -21,9 +21,9 @@ export default function CandidateCard({ candidato, selected, onSelect }: Candida
           <div className="absolute top-1.5 right-1.5 bg-puc-red rounded-full w-5 h-5 flex items-center justify-center text-white text-xs font-black">✓</div>
         )}
       </div>
-      <div className="p-3.5 flex flex-col justify-center flex-1">
-        <p className="text-[15px] font-extrabold text-gray-900 uppercase tracking-wide mb-1.5 capitalize">{candidato.nome}</p>
-        <p className="text-[12px] text-gray-500 italic leading-relaxed border-l-2 border-gray-200 pl-2">"{candidato.frase}"</p>
+      <div className="p-3.5 flex flex-col justify-center flex-1 min-w-0 overflow-hidden">
+        <p className="text-[15px] font-extrabold text-gray-900 uppercase tracking-wide mb-1.5 capitalize truncate">{candidato.nome}</p>
+        <p className="text-[12px] text-gray-500 italic border-l-2 border-gray-200 pl-2 line-clamp-2 overflow-hidden">"{candidato.frase}"</p>
         <p className="mt-2 text-[11px] text-puc-bordeaux font-bold uppercase tracking-wide">
           {selected ? 'Selecionado ✓' : 'Selecionar →'}
         </p>

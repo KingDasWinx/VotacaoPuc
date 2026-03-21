@@ -85,14 +85,14 @@ export default function RegisterClient({ secret }: RegisterClientProps) {
         <input
           type="text"
           required
-          maxLength={80}
+          maxLength={30}
           value={frase}
           onChange={(e) => setFrase(e.target.value)}
           placeholder="Sua mensagem para os colegas"
           className="w-full border-2 border-gray-200 rounded-md px-4 py-3.5 text-[15px] font-medium text-gray-900 outline-none focus:border-puc-bordeaux transition-colors"
           disabled={loading}
         />
-        <p className="text-right text-gray-400 text-[11px] mt-1">{frase.length} / 80</p>
+        <p className="text-right text-gray-400 text-[11px] mt-1">{frase.length} / 30</p>
       </div>
       {error && <p className="text-puc-red text-xs font-semibold mb-4">{error}</p>}
       <button

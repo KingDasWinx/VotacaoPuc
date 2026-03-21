@@ -75,7 +75,7 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
 
   const selectedCandidato = candidatos.find((c) => c.id === selectedId) ?? null
 
-  async function handleConfirmVote(nomeVotante: string) {
+  async function handleConfirmVote(nomeVotante: string, cpf: string) {
     if (!selectedId) return
     setVoteLoading(true)
     setVoteError(null)
@@ -84,7 +84,7 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
       const res = await fetch('/api/votos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ candidato_id: selectedId, nome_votante: nomeVotante }),
+        body: JSON.stringify({ candidato_id: selectedId, nome_votante: nomeVotante, cpf }),
       })
 
       if (res.status === 409) {
@@ -120,11 +120,11 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
 
   return (
     <>
-      {/* Desktop: two-column layout */}
-      <div className="md:flex md:min-h-[calc(100vh-88px)]">
-        {/* Left column — hero (sticky sidebar on desktop) */}
-        <div className="md:w-80 md:flex-shrink-0 md:sticky md:top-0 md:self-start">
-          <div className="bg-puc-bordeaux px-5 pt-10 pb-8 md:min-h-screen md:px-10 md:pt-16 md:pb-16 relative overflow-hidden">
+      {/* Mobile: stacked. Desktop: two-column fixed height with independent scroll */}
+      <div className="md:flex md:h-[calc(100vh-88px)] md:overflow-hidden">
+        {/* Left column — hero sidebar */}
+        <div className="md:w-80 md:flex-shrink-0 md:overflow-y-auto">
+          <div className="bg-puc-bordeaux px-5 pt-10 pb-8 md:h-full md:px-10 md:pt-16 md:pb-16 relative overflow-hidden">
             <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-[#A50040] rounded-full opacity-50" />
             <p className="text-white/70 text-[10px] font-bold tracking-[3px] uppercase mb-2 relative z-10">Eleição de Liderança · 2026</p>
             <h1 className="text-white text-[32px] md:text-[40px] font-black uppercase leading-[1.05] mb-2 relative z-10">
@@ -145,8 +145,8 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
           </div>
         </div>
 
-        {/* Right column — candidate list */}
-        <div className="md:flex-1 md:overflow-y-auto pb-24 md:pb-8">
+        {/* Right column — scrollable candidate list */}
+        <div className="md:flex-1 md:overflow-y-auto pb-24 md:pb-4">
           <CandidateList candidatos={candidatos} selectedId={selectedId} onSelect={setSelectedId} />
         </div>
       </div>
