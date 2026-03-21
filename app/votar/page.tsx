@@ -5,6 +5,7 @@ import Header from '@/components/layout/Header'
 import VotingClient from '@/components/votar/VotingClient'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function VotarPage() {
   const { data: config } = await supabase

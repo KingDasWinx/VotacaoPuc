@@ -40,7 +40,7 @@ export default async function CandidatosPage({
           <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-[#A50040] rounded-full opacity-50" />
           <p className="text-white/70 text-[10px] font-bold tracking-[3px] uppercase mb-2 relative z-10">Candidatura</p>
           <h1 className="text-white text-[32px] md:text-[40px] font-black uppercase leading-[1.05] mb-2 relative z-10">
-            CADASTRE<br />SUA <span className="text-pink-300">CHAPA</span>
+            SEJA O<br /><span className="text-pink-300">REPRESENTANTE</span>
           </h1>
           <p className="text-white/80 text-sm font-medium relative z-10">Preencha seus dados para concorrer à liderança de turma.</p>
         </div>

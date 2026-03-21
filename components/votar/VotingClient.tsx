@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Candidato, Config } from '@/types'
 import BlockedScreen from './BlockedScreen'
 import AlreadyVotedScreen from './AlreadyVotedScreen'
@@ -11,27 +11,67 @@ import SuccessScreen from './SuccessScreen'
 type Screen = 'loading' | 'blocked' | 'ended' | 'already-voted' | 'voting' | 'confirming' | 'success'
 
 const VOTED_KEY = 'pucpr_voted'
+const POLL_INTERVAL = 15_000
 
-export default function VotingClient({ config, candidatos }: { config: Config; candidatos: Candidato[] }) {
+function resolveScreen(config: Config): Exclude<Screen, 'loading' | 'confirming' | 'success'> {
+  const now = new Date()
+  const inicio = new Date(config.votacao_inicio)
+  const fim = config.votacao_fim ? new Date(config.votacao_fim) : null
+
+  if (now < inicio) return 'blocked'
+  if (fim && now > fim) return 'ended'
+
+  try {
+    if (localStorage.getItem(VOTED_KEY)) return 'already-voted'
+  } catch { /* localStorage unavailable */ }
+
+  return 'voting'
+}
+
+export default function VotingClient({ config: initialConfig, candidatos: initialCandidatos }: { config: Config; candidatos: Candidato[] }) {
+  const [config, setConfig] = useState<Config>(initialConfig)
+  const [candidatos, setCandidatos] = useState<Candidato[]>(initialCandidatos)
   const [screen, setScreen] = useState<Screen>('loading')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [voteLoading, setVoteLoading] = useState(false)
   const [voteError, setVoteError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const now = new Date()
-    const inicio = new Date(config.votacao_inicio)
-    const fim = config.votacao_fim ? new Date(config.votacao_fim) : null
-
-    if (now < inicio) { setScreen('blocked'); return }
-    if (fim && now > fim) { setScreen('ended'); return }
-
+  const fetchData = useCallback(async () => {
     try {
-      if (localStorage.getItem(VOTED_KEY)) { setScreen('already-voted'); return }
-    } catch { /* localStorage unavailable */ }
+      const [configRes, candidatosRes] = await Promise.all([
+        fetch('/api/config', { cache: 'no-store' }),
+        fetch('/api/candidatos', { cache: 'no-store' }),
+      ])
+      if (configRes.ok) {
+        const data = await configRes.json()
+        setConfig(data)
+      }
+      if (candidatosRes.ok) {
+        const data = await candidatosRes.json()
+        setCandidatos(data)
+      }
+    } catch { /* silently ignore network errors */ }
+  }, [])
 
-    setScreen('voting')
+  // Set initial screen from SSR data
+  useEffect(() => {
+    setScreen(resolveScreen(initialConfig))
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update screen whenever config changes (from polling)
+  useEffect(() => {
+    setScreen((prev) => {
+      // Don't override terminal states
+      if (prev === 'success' || prev === 'already-voted' || prev === 'confirming') return prev
+      return resolveScreen(config)
+    })
   }, [config])
+
+  // Poll every 15s
+  useEffect(() => {
+    const id = setInterval(fetchData, POLL_INTERVAL)
+    return () => clearInterval(id)
+  }, [fetchData])
 
   const selectedCandidato = candidatos.find((c) => c.id === selectedId) ?? null
 
