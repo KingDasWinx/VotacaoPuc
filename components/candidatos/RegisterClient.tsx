@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PhotoUpload from './PhotoUpload'
+
+const REGISTERED_KEY = 'pucpr_candidato_registrado'
 
 interface RegisterClientProps {
   secret: string
@@ -14,6 +16,36 @@ export default function RegisterClient({ secret }: RegisterClientProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(REGISTERED_KEY)
+      if (stored) setAlreadyRegistered(true)
+    } catch { /* ok */ }
+  }, [])
+
+  if (alreadyRegistered) {
+    return (
+      <div className="p-4 md:px-0">
+        <div className="bg-white rounded shadow-md overflow-hidden">
+          <div className="bg-puc-bordeaux px-6 py-10 text-center">
+            <div className="flex justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h2 className="text-white text-2xl font-black uppercase tracking-wide mb-2">Já Cadastrado!</h2>
+            <p className="text-white/75 text-sm">Sua candidatura já foi registrada.</p>
+          </div>
+          <div className="px-6 py-6 text-center">
+            <p className="text-gray-500 text-sm leading-relaxed">
+              Você já se cadastrou como candidato neste dispositivo.<br /><br />
+              Aguarde o período de votação para que seus colegas possam votar em você.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (success) {
     return (
@@ -40,6 +72,8 @@ export default function RegisterClient({ secret }: RegisterClientProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!fotoUrl) { setError('Por favor, adicione uma foto antes de continuar.'); return }
+    if (nome.trim().length < 2) { setError('Informe seu nome completo.'); return }
+    if (frase.trim().length < 2) { setError('A frase de campanha deve ter pelo menos uma palavra.'); return }
     setLoading(true)
     setError(null)
 
@@ -60,6 +94,7 @@ export default function RegisterClient({ secret }: RegisterClientProps) {
       setLoading(false)
       return
     }
+    try { localStorage.setItem(REGISTERED_KEY, JSON.stringify({ timestamp: Date.now() })) } catch { /* ok */ }
     setSuccess(true)
   }
 

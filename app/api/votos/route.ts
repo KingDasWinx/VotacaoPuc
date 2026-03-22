@@ -71,7 +71,11 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     if (error.code === '23505') {
-      return NextResponse.json({ error: 'You have already voted' }, { status: 409 })
+      const isCpf = error.message?.includes('votos_cpf_unique')
+      const msg = isCpf
+        ? 'Este CPF já foi usado para votar.'
+        : 'Este nome já foi usado para votar.'
+      return NextResponse.json({ error: msg }, { status: 409 })
     }
     return NextResponse.json({ error: 'Failed to register vote' }, { status: 500 })
   }

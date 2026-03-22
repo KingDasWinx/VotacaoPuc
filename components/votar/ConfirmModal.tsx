@@ -40,11 +40,11 @@ export default function ConfirmModal({ candidato, onConfirm, onCancel, loading, 
   const [cpf, setCpf] = useState('')
 
   const cpfValido = isValidCpf(cpf)
-  const canSubmit = nome.trim().length >= 2 && cpfValido
+  const canSubmit = nome.trim().split(/\s+/).filter(Boolean).length >= 1 && nome.trim().length >= 2 && cpfValido
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-end z-50">
-      <div className="bg-white rounded-t-[20px] w-full max-w-[430px] mx-auto px-6 pt-6 pb-10 animate-slide-up">
+    <div className="fixed inset-0 bg-black/70 flex items-end md:items-center md:justify-center z-50">
+      <div className="bg-white rounded-t-[20px] md:rounded-[20px] w-full max-w-[430px] mx-auto px-6 pt-6 pb-10 animate-slide-up md:animate-none">
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
         <div className="flex items-center gap-3.5 bg-pink-50 rounded p-3.5 mb-6 border-l-4 border-puc-bordeaux">
           <div className="relative w-14 h-14 rounded-full bg-puc-bordeaux flex-shrink-0 overflow-hidden">

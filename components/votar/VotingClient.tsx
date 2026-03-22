@@ -88,7 +88,8 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
       })
 
       if (res.status === 409) {
-        setVoteError('Este nome já foi usado para votar. Caso tenha errado, entre em contato com o organizador.')
+        const data = await res.json()
+        setVoteError((data.error ?? 'Este CPF já foi usado para votar.') + ' Caso tenha errado, entre em contato com o organizador.')
         setVoteLoading(false)
         return
       }
