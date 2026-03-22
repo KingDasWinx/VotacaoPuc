@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"clock\\\\|timer\\\\|hora\\\\|tempo\\\\|display\" /c/Users/winx/Documents/GitHub/VotacaoPuc/docs --include=*.md)",
+      "Bash(xargs grep:*)"
+    ]
+  }
+}

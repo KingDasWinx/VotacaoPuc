@@ -63,7 +63,11 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
     setScreen((prev) => {
       // Don't override terminal states
       if (prev === 'success' || prev === 'already-voted' || prev === 'confirming') return prev
-      return resolveScreen(config)
+      const next = resolveScreen(config)
+      // Avoid re-mounting BlockedScreen when still in blocked/ended state
+      if (prev === 'blocked' && next === 'blocked') return prev
+      if (prev === 'ended' && next === 'ended') return prev
+      return next
     })
   }, [config])
 
