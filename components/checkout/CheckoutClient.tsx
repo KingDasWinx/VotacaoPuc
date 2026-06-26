@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatBRL } from '@/lib/money'
+import { maskCpf, maskTelefone } from '@/lib/masks'
+import { Plus, Trash2, User, ArrowRight } from 'lucide-react'
 
 interface Participante {
   nome: string
@@ -12,6 +14,9 @@ interface Participante {
 }
 
 const vazio = (): Participante => ({ nome: '', cpf: '', data_nascimento: '', telefone: '' })
+
+const inputClass =
+  'w-full rounded-xl border border-line bg-canvas/40 px-3.5 py-2.5 text-ink placeholder:text-ink/40 focus:bg-white'
 
 export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; precoCentavos: number }) {
   const router = useRouter()
@@ -54,50 +59,92 @@ export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; 
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-8">
       {participantes.map((p, i) => (
-        <div key={i} className="mb-4 rounded-2xl border border-simp-mist bg-white p-5 shadow-sm">
+        <div
+          key={i}
+          className="animate-fade-up mb-4 rounded-2xl border border-line bg-white p-5 shadow-card"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="font-bold text-simp-deep">
-              {i === 0 ? 'Seu ingresso (seus dados)' : `Ingresso ${i + 1}`}
+            <h2 className="flex items-center gap-2 font-bold text-brand">
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-brand/10 text-brand">
+                <User size={15} />
+              </span>
+              {i === 0 ? 'Seus dados' : `Ingresso ${i + 1}`}
             </h2>
             {i > 0 && (
-              <button type="button" onClick={() => remove(i)} className="text-sm font-semibold text-red-600">
-                Remover
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+              >
+                <Trash2 size={15} /> Remover
               </button>
             )}
           </div>
           <div className="mt-4 grid gap-3">
-            <input className="rounded-lg border border-simp-mist px-3 py-2" placeholder="Nome completo"
-              value={p.nome} onChange={(e) => update(i, 'nome', e.target.value)} />
-            <input className="rounded-lg border border-simp-mist px-3 py-2" placeholder="CPF" inputMode="numeric"
-              value={p.cpf} onChange={(e) => update(i, 'cpf', e.target.value)} />
-            <input className="rounded-lg border border-simp-mist px-3 py-2" type="date" aria-label="Data de nascimento"
-              value={p.data_nascimento} onChange={(e) => update(i, 'data_nascimento', e.target.value)} />
-            <input className="rounded-lg border border-simp-mist px-3 py-2" placeholder="Telefone (WhatsApp)" inputMode="tel"
-              value={p.telefone} onChange={(e) => update(i, 'telefone', e.target.value)} />
+            <input
+              className={inputClass}
+              placeholder="Nome completo"
+              value={p.nome}
+              onChange={(e) => update(i, 'nome', e.target.value)}
+            />
+            <input
+              className={inputClass}
+              placeholder="CPF"
+              inputMode="numeric"
+              value={p.cpf}
+              onChange={(e) => update(i, 'cpf', maskCpf(e.target.value))}
+            />
+            <label className="text-xs font-semibold text-ink/55">
+              Data de nascimento
+              <input
+                className={`${inputClass} mt-1`}
+                type="date"
+                value={p.data_nascimento}
+                onChange={(e) => update(i, 'data_nascimento', e.target.value)}
+              />
+            </label>
+            <input
+              className={inputClass}
+              placeholder="Telefone (WhatsApp)"
+              inputMode="tel"
+              value={p.telefone}
+              onChange={(e) => update(i, 'telefone', maskTelefone(e.target.value))}
+            />
           </div>
         </div>
       ))}
 
-      <button type="button" onClick={add}
-        className="mb-6 w-full rounded-full border-2 border-dashed border-simp-teal py-3 font-semibold text-simp-teal">
-        + Adicionar ingresso para outra pessoa
+      <button
+        type="button"
+        onClick={add}
+        className="mb-6 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand-muted/50 py-3.5 font-semibold text-brand transition hover:border-brand hover:bg-surface/50"
+      >
+        <Plus size={18} /> Adicionar ingresso para outra pessoa
       </button>
 
-      <div className="rounded-2xl border border-simp-mist bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between text-sm text-simp-ink/70">
-          <span>{loteNome} × {participantes.length}</span>
+      <div className="sticky bottom-4 rounded-2xl border border-line bg-white p-5 shadow-card-hover">
+        <div className="flex items-center justify-between text-sm text-ink/60">
+          <span>
+            {loteNome} × {participantes.length}
+          </span>
           <span>{formatBRL(precoCentavos)} cada</span>
         </div>
-        <div className="mt-2 flex items-center justify-between text-lg font-extrabold text-simp-deep">
+        <div className="mt-2 flex items-center justify-between text-xl font-extrabold text-brand">
           <span>Total</span>
           <span>{formatBRL(total)}</span>
         </div>
-        {erro && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
-        <button type="button" onClick={submit} disabled={enviando}
-          className="mt-4 w-full rounded-full bg-simp-teal py-3 font-bold uppercase tracking-wide text-white transition hover:bg-simp-deep disabled:opacity-60">
-          {enviando ? 'Processando…' : 'Ir para pagamento'}
+        {erro && (
+          <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>
+        )}
+        <button
+          type="button"
+          onClick={submit}
+          disabled={enviando}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-accent py-3.5 font-bold uppercase tracking-wide text-brand shadow-card transition hover:-translate-y-0.5 hover:bg-accent-hover hover:text-on-dark disabled:translate-y-0 disabled:opacity-60"
+        >
+          {enviando ? 'Processando…' : <>Ir para pagamento <ArrowRight size={18} /></>}
         </button>
       </div>
     </div>

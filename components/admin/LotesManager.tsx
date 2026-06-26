@@ -4,12 +4,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatBRL } from '@/lib/money'
 import type { Lote } from '@/lib/types'
+import { Plus, Power, Trash2 } from 'lucide-react'
 
 // Converte "150,00" ou "150.00" em centavos (15000)
 function reaisParaCentavos(valor: string): number {
   const limpo = valor.replace(/\./g, '').replace(',', '.')
   return Math.round(parseFloat(limpo) * 100)
 }
+
+const inputClass = 'w-full rounded-xl border border-line bg-canvas/40 px-3.5 py-2.5 focus:bg-white'
 
 export function LotesManager({ lotesIniciais }: { lotesIniciais: Lote[] }) {
   const router = useRouter()
@@ -74,51 +77,68 @@ export function LotesManager({ lotesIniciais }: { lotesIniciais: Lote[] }) {
 
   return (
     <div className="mt-6">
-      <div className="rounded-2xl border border-simp-mist bg-white p-5 shadow-sm">
-        <h2 className="font-bold text-simp-deep">Novo lote</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <input className="rounded-lg border border-simp-mist px-3 py-2" placeholder="Nome (ex.: Lote Promocional)"
+      <div className="animate-fade-up rounded-2xl border border-line bg-white p-5 shadow-card">
+        <h2 className="font-bold text-brand">Novo lote</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <input className={inputClass} placeholder="Nome (ex.: Lote Promocional)"
             value={nome} onChange={(e) => setNome(e.target.value)} />
-          <input className="rounded-lg border border-simp-mist px-3 py-2" placeholder="Preço (ex.: 150,00)"
+          <input className={inputClass} placeholder="Preço (ex.: 150,00)"
             value={preco} onChange={(e) => setPreco(e.target.value)} />
-          <label className="text-sm text-simp-ink/70">Início
-            <input type="datetime-local" className="mt-1 w-full rounded-lg border border-simp-mist px-3 py-2"
+          <label className="text-xs font-semibold text-ink/55">Início
+            <input type="datetime-local" className={`${inputClass} mt-1`}
               value={inicio} onChange={(e) => setInicio(e.target.value)} />
           </label>
-          <label className="text-sm text-simp-ink/70">Fim
-            <input type="datetime-local" className="mt-1 w-full rounded-lg border border-simp-mist px-3 py-2"
+          <label className="text-xs font-semibold text-ink/55">Fim
+            <input type="datetime-local" className={`${inputClass} mt-1`}
               value={fim} onChange={(e) => setFim(e.target.value)} />
           </label>
         </div>
         {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
-        <button onClick={criar} className="mt-4 rounded-full bg-simp-teal px-6 py-2 font-bold uppercase text-white">
-          Criar lote
+        <button onClick={criar}
+          className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 font-bold uppercase text-brand transition hover:bg-accent-hover hover:text-on-dark">
+          <Plus size={18} /> Criar lote
         </button>
       </div>
 
       <div className="mt-6 space-y-3">
-        {lotesIniciais.map((l) => (
-          <div key={l.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-simp-mist bg-white p-4 shadow-sm">
+        {lotesIniciais.map((l, i) => (
+          <div
+            key={l.id}
+            className="animate-fade-up flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 shadow-card"
+            style={{ animationDelay: `${i * 50}ms` }}
+          >
             <div>
-              <p className="font-bold text-simp-deep">{l.nome} — {formatBRL(l.preco_centavos)}</p>
-              <p className="text-xs text-simp-ink/60">
+              <p className="font-bold text-brand">
+                {l.nome} — {formatBRL(l.preco_centavos)}
+              </p>
+              <p className="text-xs text-ink/55">
                 {new Date(l.data_inicio).toLocaleString('pt-BR')} → {new Date(l.data_fim).toLocaleString('pt-BR')}
               </p>
-              <span className={`text-xs font-semibold ${l.ativo ? 'text-green-700' : 'text-simp-ink/50'}`}>
+              <span
+                className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  l.ativo ? 'bg-brand/10 text-brand' : 'bg-surface text-ink/50'
+                }`}
+              >
                 {l.ativo ? 'Ativo' : 'Inativo'}
               </span>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => toggleAtivo(l)} className="rounded-full border border-simp-teal px-3 py-1 text-sm font-semibold text-simp-teal">
-                {l.ativo ? 'Desativar' : 'Ativar'}
+              <button onClick={() => toggleAtivo(l)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-brand px-3 py-1.5 text-sm font-semibold text-brand transition hover:bg-brand hover:text-on-dark">
+                <Power size={15} /> {l.ativo ? 'Desativar' : 'Ativar'}
               </button>
-              <button onClick={() => excluir(l.id)} className="rounded-full border border-red-500 px-3 py-1 text-sm font-semibold text-red-600">
-                Excluir
+              <button onClick={() => excluir(l.id)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-red-400 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white">
+                <Trash2 size={15} /> Excluir
               </button>
             </div>
           </div>
         ))}
-        {lotesIniciais.length === 0 && <p className="text-simp-ink/60">Nenhum lote cadastrado.</p>}
+        {lotesIniciais.length === 0 && (
+          <p className="rounded-2xl border border-dashed border-line py-10 text-center text-ink/55">
+            Nenhum lote cadastrado.
+          </p>
+        )}
       </div>
     </div>
   )

@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
   const parsed = parseLote(body)
   if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 })
   const { data, error } = await supabase.from('lotes').insert({ ...parsed.value, ativo: true }).select().single()
-  if (error) return NextResponse.json({ error: 'Erro ao criar lote' }, { status: 500 })
+  if (error) {
+    console.error('[lotes POST] supabase error:', error)
+    return NextResponse.json({ error: 'Erro ao criar lote' }, { status: 500 })
+  }
   return NextResponse.json({ lote: data }, { status: 201 })
 }
 

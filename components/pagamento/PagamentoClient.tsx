@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { Copy, Check, Upload, MessageCircle, Clock, CircleCheck, CircleX } from 'lucide-react'
 
-const STATUS_LABEL: Record<string, { texto: string; classe: string }> = {
-  pendente: { texto: 'Aguardando pagamento', classe: 'bg-amber-100 text-amber-800' },
-  pago: { texto: 'Pagamento confirmado', classe: 'bg-green-100 text-green-800' },
-  cancelado: { texto: 'Pedido cancelado', classe: 'bg-red-100 text-red-800' },
+const STATUS_LABEL: Record<string, { texto: string; classe: string; Icon: typeof Clock }> = {
+  pendente: { texto: 'Aguardando pagamento', classe: 'bg-accent-tint/40 text-accent-hover', Icon: Clock },
+  pago: { texto: 'Pagamento confirmado', classe: 'bg-brand/10 text-brand', Icon: CircleCheck },
+  cancelado: { texto: 'Pedido cancelado', classe: 'bg-red-100 text-red-700', Icon: CircleX },
 }
 
 export function PagamentoClient({
@@ -63,56 +64,75 @@ export function PagamentoClient({
 
   return (
     <div className="mt-6 space-y-6">
-      <span className={`inline-block rounded-full px-4 py-1.5 text-sm font-semibold ${badge.classe}`}>
-        {badge.texto}
+      <span className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold ${badge.classe}`}>
+        <badge.Icon size={16} /> {badge.texto}
       </span>
 
       {status === 'pendente' && (
-        <div className="rounded-2xl border border-simp-mist bg-white p-6 text-center shadow-sm">
-          <p className="text-sm text-simp-ink/70">Valor total</p>
-          <p className="text-3xl font-extrabold text-simp-deep">{valorFormatado}</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qrDataUrl} alt="QR Code PIX" className="mx-auto mt-4 h-64 w-64" />
-          <button onClick={copiar}
-            className="mt-4 w-full rounded-full bg-simp-teal py-3 font-bold uppercase tracking-wide text-white transition hover:bg-simp-deep">
-            {copiado ? 'Código copiado!' : 'Copiar código PIX'}
+        <div className="animate-scale-in rounded-3xl border border-line bg-white p-6 text-center shadow-card">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink/55">Valor total</p>
+          <p className="text-4xl font-extrabold text-brand">{valorFormatado}</p>
+          <div className="mx-auto mt-5 w-fit rounded-2xl border border-line bg-white p-3 shadow-card">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={qrDataUrl} alt="QR Code PIX" className="h-60 w-60" />
+          </div>
+          <button
+            onClick={copiar}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-accent py-3.5 font-bold uppercase tracking-wide text-brand shadow-card transition hover:-translate-y-0.5 hover:bg-accent-hover hover:text-on-dark"
+          >
+            {copiado ? <><Check size={18} /> Código copiado!</> : <><Copy size={18} /> Copiar código PIX</>}
           </button>
-          <p className="mt-3 break-all rounded-lg bg-simp-mist px-3 py-2 text-xs text-simp-ink/70">
+          <p className="mt-3 break-all rounded-xl bg-surface px-3 py-2 text-xs text-ink/60">
             Chave: {pixChave}
           </p>
         </div>
       )}
 
       {status === 'pendente' && (
-        <div className="rounded-2xl border border-simp-mist bg-white p-6 shadow-sm">
-          <h2 className="font-bold text-simp-deep">Enviar comprovante</h2>
-          <p className="mt-1 text-sm text-simp-ink/70">
+        <div className="animate-fade-up rounded-3xl border border-line bg-white p-6 shadow-card">
+          <h2 className="font-bold text-brand">Enviar comprovante</h2>
+          <p className="mt-1 text-sm text-ink/60">
             Depois de pagar, anexe o comprovante aqui ou envie pelo WhatsApp.
           </p>
           {enviado ? (
-            <p className="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
-              Comprovante recebido! Em breve confirmaremos seu pagamento.
+            <p className="mt-4 flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-3 text-sm font-semibold text-brand">
+              <CircleCheck size={18} /> Comprovante recebido! Em breve confirmaremos seu pagamento.
             </p>
           ) : (
-            <label className="mt-4 block cursor-pointer rounded-full border-2 border-simp-teal py-3 text-center font-semibold text-simp-teal">
+            <label className="mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-brand py-3 text-center font-semibold text-brand transition hover:bg-surface">
+              <Upload size={18} />
               {enviando ? 'Enviando…' : 'Anexar comprovante (imagem ou PDF)'}
-              <input type="file" accept="image/*,application/pdf" className="hidden"
-                onChange={enviarComprovante} disabled={enviando} />
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={enviarComprovante}
+                disabled={enviando}
+              />
             </label>
           )}
           {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
           {whatsappLink && (
-            <a href={whatsappLink} target="_blank" rel="noopener noreferrer"
-              className="mt-3 block rounded-full bg-green-600 py-3 text-center font-semibold text-white">
-              Enviar comprovante por WhatsApp
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-center gap-2 rounded-full bg-[#25D366] py-3 text-center font-semibold text-white transition hover:brightness-95"
+            >
+              <MessageCircle size={18} /> Enviar comprovante por WhatsApp
             </a>
           )}
         </div>
       )}
 
       {status === 'pago' && (
-        <div className="rounded-2xl border border-green-200 bg-green-50 p-6 text-green-800">
-          Pagamento confirmado! Seu(s) ingresso(s) está(ão) garantido(s). Guarde o código <b>{codigo}</b>.
+        <div className="animate-scale-in rounded-3xl border border-brand/20 bg-brand/5 p-6 text-brand">
+          <p className="flex items-center gap-2 text-lg font-bold">
+            <CircleCheck size={22} /> Pagamento confirmado!
+          </p>
+          <p className="mt-2 text-ink/70">
+            Seu(s) ingresso(s) está(ão) garantido(s). Guarde o código <b>{codigo}</b>.
+          </p>
         </div>
       )}
     </div>

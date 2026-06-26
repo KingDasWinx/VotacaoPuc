@@ -4,7 +4,8 @@ import { getEventConfig } from '@/lib/event-data'
 import { supabase } from '@/lib/supabase'
 import { formatBRL } from '@/lib/money'
 import { PedidosTable, type PedidoRow } from '@/components/admin/PedidosTable'
-import Link from 'next/link'
+import { AdminHeader } from '@/components/admin/AdminHeader'
+import { Users, CircleCheck, Clock, CircleX, Wallet, Hourglass, Gauge } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,7 +40,6 @@ export default async function AdminDashboard() {
     }
   })
 
-  // Métricas
   const inscritos = pedidos
     .filter((p) => p.status !== 'cancelado')
     .reduce((acc, p) => acc + p.ingressos.filter((i) => i.status === 'valido').length, 0)
@@ -51,40 +51,53 @@ export default async function AdminDashboard() {
   const capacidade = config?.capacidade ?? 0
 
   const cards = [
-    { label: 'Inscritos (válidos)', valor: String(inscritos) },
-    { label: 'Pedidos pagos', valor: String(pagos.length) },
-    { label: 'Pendentes', valor: String(pendentes.length) },
-    { label: 'Cancelados', valor: String(cancelados.length) },
-    { label: 'Receita confirmada', valor: formatBRL(receitaConfirmada) },
-    { label: 'Receita pendente', valor: formatBRL(receitaPendente) },
-    { label: 'Capacidade', valor: capacidade > 0 ? `${inscritos}/${capacidade}` : 'Ilimitada' },
+    { label: 'Inscritos válidos', valor: String(inscritos), Icon: Users, tom: 'brand' as const },
+    { label: 'Pedidos pagos', valor: String(pagos.length), Icon: CircleCheck, tom: 'brand' as const },
+    { label: 'Pendentes', valor: String(pendentes.length), Icon: Clock, tom: 'accent' as const },
+    { label: 'Cancelados', valor: String(cancelados.length), Icon: CircleX, tom: 'red' as const },
+    { label: 'Receita confirmada', valor: formatBRL(receitaConfirmada), Icon: Wallet, tom: 'brand' as const },
+    { label: 'Receita pendente', valor: formatBRL(receitaPendente), Icon: Hourglass, tom: 'accent' as const },
+    {
+      label: 'Capacidade',
+      valor: capacidade > 0 ? `${inscritos}/${capacidade}` : 'Ilimitada',
+      Icon: Gauge,
+      tom: 'brand' as const,
+    },
   ]
 
+  const tomClasse: Record<string, string> = {
+    brand: 'bg-brand/10 text-brand',
+    accent: 'bg-accent-tint/40 text-accent-hover',
+    red: 'bg-red-100 text-red-600',
+  }
+
   return (
-    <main className="mx-auto max-w-6xl px-5 py-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-extrabold text-simp-deep">Dashboard</h1>
-        <div className="flex flex-wrap gap-2 text-sm">
-          <Link href="/admin/lotes" className="rounded-full border border-simp-teal px-4 py-2 font-semibold text-simp-teal">Lotes</Link>
-          <Link href="/admin/configuracoes" className="rounded-full border border-simp-teal px-4 py-2 font-semibold text-simp-teal">Configurações</Link>
-          <a href="/api/admin/export?tipo=participantes" className="rounded-full border border-simp-teal px-4 py-2 font-semibold text-simp-teal">CSV credenciamento</a>
-          <a href="/api/admin/export?tipo=pagamentos" className="rounded-full border border-simp-teal px-4 py-2 font-semibold text-simp-teal">CSV pagamentos</a>
-          <form action="/api/admin/logout" method="post">
-            <button className="rounded-full bg-simp-deep px-4 py-2 font-semibold text-white">Sair</button>
-          </form>
+    <>
+      <AdminHeader active="dashboard" />
+      <main className="mx-auto max-w-6xl px-5 py-8">
+        <div className="animate-fade-up">
+          <h1 className="text-2xl font-extrabold text-brand">Dashboard</h1>
+          <p className="mt-1 text-sm text-ink/60">Visão geral das inscrições e pagamentos.</p>
         </div>
-      </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-xl border border-simp-mist bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase text-simp-ink/60">{c.label}</p>
-            <p className="mt-1 text-xl font-extrabold text-simp-deep">{c.valor}</p>
-          </div>
-        ))}
-      </div>
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {cards.map((c, i) => (
+            <div
+              key={c.label}
+              className="animate-fade-up rounded-2xl border border-line bg-white p-4 shadow-card transition hover:shadow-card-hover"
+              style={{ animationDelay: `${i * 40}ms` }}
+            >
+              <span className={`grid h-9 w-9 place-items-center rounded-xl ${tomClasse[c.tom]}`}>
+                <c.Icon size={18} />
+              </span>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink/55">{c.label}</p>
+              <p className="mt-0.5 text-2xl font-extrabold text-brand">{c.valor}</p>
+            </div>
+          ))}
+        </div>
 
-      <PedidosTable pedidos={pedidos} />
-    </main>
+        <PedidosTable pedidos={pedidos} />
+      </main>
+    </>
   )
 }

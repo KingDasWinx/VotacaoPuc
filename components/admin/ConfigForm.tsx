@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { EventConfig } from '@/lib/event-data'
+import { Save } from 'lucide-react'
 
 const CAMPOS_TEXTO: { key: keyof EventConfig; label: string }[] = [
   { key: 'nome', label: 'Nome do evento' },
@@ -15,6 +16,8 @@ const CAMPOS_TEXTO: { key: keyof EventConfig; label: string }[] = [
   { key: 'pix_cidade', label: 'Cidade do recebedor (PIX, ≤15)' },
   { key: 'whatsapp_numero', label: 'WhatsApp (ex.: 5545999999999)' },
 ]
+
+const inputClass = 'mt-1 w-full rounded-xl border border-line bg-canvas/40 px-3.5 py-2.5 font-normal focus:bg-white'
 
 export function ConfigForm({ config }: { config: EventConfig }) {
   const router = useRouter()
@@ -41,42 +44,67 @@ export function ConfigForm({ config }: { config: EventConfig }) {
   }
 
   return (
-    <div className="mt-6 space-y-4 rounded-2xl border border-simp-mist bg-white p-5 shadow-sm">
+    <div className="animate-fade-up mt-6 space-y-4 rounded-2xl border border-line bg-white p-6 shadow-card">
       {CAMPOS_TEXTO.map((c) => (
-        <label key={c.key} className="block text-sm font-semibold text-simp-ink/80">
+        <label key={c.key} className="block text-sm font-semibold text-ink/80">
           {c.label}
-          <input className="mt-1 w-full rounded-lg border border-simp-mist px-3 py-2 font-normal"
-            value={String(form[c.key] ?? '')} onChange={(e) => set(c.key, e.target.value)} />
+          <input
+            className={inputClass}
+            value={String(form[c.key] ?? '')}
+            onChange={(e) => set(c.key, e.target.value)}
+          />
         </label>
       ))}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-semibold text-simp-ink/80">Início
-          <input type="datetime-local" className="mt-1 w-full rounded-lg border border-simp-mist px-3 py-2 font-normal"
+        <label className="block text-sm font-semibold text-ink/80">
+          Início
+          <input
+            type="datetime-local"
+            className={inputClass}
             defaultValue={localInput(config.data_inicio)}
-            onChange={(e) => set('data_inicio', new Date(e.target.value).toISOString())} />
+            onChange={(e) => set('data_inicio', new Date(e.target.value).toISOString())}
+          />
         </label>
-        <label className="block text-sm font-semibold text-simp-ink/80">Fim
-          <input type="datetime-local" className="mt-1 w-full rounded-lg border border-simp-mist px-3 py-2 font-normal"
+        <label className="block text-sm font-semibold text-ink/80">
+          Fim
+          <input
+            type="datetime-local"
+            className={inputClass}
             defaultValue={localInput(config.data_fim)}
-            onChange={(e) => set('data_fim', new Date(e.target.value).toISOString())} />
+            onChange={(e) => set('data_fim', new Date(e.target.value).toISOString())}
+          />
         </label>
       </div>
 
-      <label className="block text-sm font-semibold text-simp-ink/80">Capacidade (0 = ilimitada)
-        <input type="number" min={0} className="mt-1 w-full rounded-lg border border-simp-mist px-3 py-2 font-normal"
-          value={Number(form.capacidade ?? 0)} onChange={(e) => set('capacidade', Number(e.target.value))} />
+      <label className="block text-sm font-semibold text-ink/80">
+        Capacidade (0 = ilimitada)
+        <input
+          type="number"
+          min={0}
+          className={inputClass}
+          value={Number(form.capacidade ?? 0)}
+          onChange={(e) => set('capacidade', Number(e.target.value))}
+        />
       </label>
 
-      <label className="flex items-center gap-2 text-sm font-semibold text-simp-ink/80">
-        <input type="checkbox" checked={Boolean(form.inscricoes_abertas)}
-          onChange={(e) => set('inscricoes_abertas', e.target.checked)} />
+      <label className="flex items-center gap-2.5 rounded-xl bg-surface/50 px-4 py-3 text-sm font-semibold text-ink/80">
+        <input
+          type="checkbox"
+          className="h-4 w-4 accent-brand"
+          checked={Boolean(form.inscricoes_abertas)}
+          onChange={(e) => set('inscricoes_abertas', e.target.checked)}
+        />
         Inscrições abertas
       </label>
 
-      {msg && <p className="text-sm font-semibold text-simp-teal">{msg}</p>}
-      <button onClick={salvar} disabled={salvando}
-        className="rounded-full bg-simp-teal px-6 py-2 font-bold uppercase text-white disabled:opacity-60">
+      {msg && <p className="text-sm font-semibold text-brand">{msg}</p>}
+      <button
+        onClick={salvar}
+        disabled={salvando}
+        className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 font-bold uppercase text-brand transition hover:bg-accent-hover hover:text-on-dark disabled:opacity-60"
+      >
+        <Save size={18} />
         {salvando ? 'Salvando…' : 'Salvar'}
       </button>
     </div>

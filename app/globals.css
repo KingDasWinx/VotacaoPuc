@@ -1,10 +1,78 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-primary: #2c4a2e; /* verde floresta */
+  --color-primary-hover: #3d6b40; /* verde médio */
+  --color-primary-muted: #5c7a5e; /* verde suave */
+
+  --color-accent: #c8a84b; /* ouro médio */
+  --color-accent-hover: #b5944a; /* ouro escuro */
+  --color-accent-tint: #e8d49a; /* ouro claro */
+
+  --color-bg: #f7f3ec; /* page background */
+  --color-surface: #ede8dc; /* card / section */
+  --color-border: #ddd8cc; /* dividers */
+  --color-on-dark: #f5f0e8; /* texto em fundos escuros */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Montserrat', sans-serif;
-  background-color: #F6F9FA;
+  background-color: var(--color-bg);
+  color: #26302a;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-accent-tint);
+  color: var(--color-primary);
+}
+
+/* Inputs e foco consistentes em todo o sistema */
+@layer base {
+  input,
+  select,
+  textarea {
+    @apply outline-none transition;
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply border-brand ring-2 ring-brand/20;
+  }
+  button {
+    @apply transition;
+  }
+}
+
+/* Scrollbar discreta */
+@media (pointer: fine) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  *::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 9999px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }

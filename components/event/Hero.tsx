@@ -21,21 +21,58 @@ export function Hero({
   bannerUrl: string | null
 }) {
   return (
-    <header className="relative overflow-hidden bg-gradient-to-br from-simp-deep to-simp-teal text-white">
+    <header className="relative overflow-hidden bg-gradient-to-br from-brand via-brand to-brand-hover text-on-dark">
       {bannerUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" />
       )}
-      <div className="relative mx-auto max-w-3xl px-5 py-12 text-center">
-        <p className="text-sm font-semibold uppercase tracking-widest text-simp-aqua">1º Simpósio</p>
-        <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-4xl">{nome}</h1>
-        {subtitulo && <p className="mt-3 text-base text-white/90 sm:text-lg">{subtitulo}</p>}
-        <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm">
-          <span className="rounded-full bg-white/15 px-4 py-2 font-semibold">📅 {formatPeriodo(dataInicio, dataFim)}</span>
-          {local && <span className="rounded-full bg-white/15 px-4 py-2 font-semibold">📍 {local}</span>}
+
+      {/* brilhos decorativos */}
+      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-accent-tint/10 blur-3xl" />
+
+      <div className="relative mx-auto max-w-3xl px-5 py-16 text-center sm:py-20">
+        <p className="animate-fade-up text-xs font-bold uppercase tracking-[0.28em] text-accent-tint">
+          1º Simpósio
+        </p>
+        <h1
+          className="animate-fade-up mt-3 text-balance text-3xl font-extrabold leading-tight sm:text-5xl"
+          style={{ animationDelay: '60ms' }}
+        >
+          {nome}
+        </h1>
+        {subtitulo && (
+          <p
+            className="animate-fade-up mx-auto mt-4 max-w-xl text-base text-on-dark/85 sm:text-lg"
+            style={{ animationDelay: '120ms' }}
+          >
+            {subtitulo}
+          </p>
+        )}
+        <div
+          className="animate-fade-up mt-8 flex flex-wrap justify-center gap-3 text-sm"
+          style={{ animationDelay: '180ms' }}
+        >
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 font-semibold backdrop-blur">
+            <span aria-hidden>📅</span> {formatPeriodo(dataInicio, dataFim)}
+          </span>
+          {local && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 font-semibold backdrop-blur">
+              <span aria-hidden>📍</span> {local}
+            </span>
+          )}
         </div>
-        {tags && <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-simp-aqua">{tags}</p>}
+        {tags && (
+          <p
+            className="animate-fade-up mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-accent-tint"
+            style={{ animationDelay: '240ms' }}
+          >
+            {tags}
+          </p>
+        )}
       </div>
+
+      <div className="h-1.5 w-full bg-gradient-to-r from-accent via-accent-tint to-accent" />
     </header>
   )
 }

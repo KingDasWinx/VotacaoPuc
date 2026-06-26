@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { LogIn } from 'lucide-react'
 
 export function LoginClient() {
   const router = useRouter()
@@ -34,12 +35,21 @@ export function LoginClient() {
 
   return (
     <div className="mt-6">
-      <input type="password" className="w-full rounded-lg border border-simp-mist px-3 py-2"
-        placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && entrar()} />
+      <input
+        type="password"
+        className="w-full rounded-xl border border-line bg-canvas/40 px-3.5 py-2.5 focus:bg-white"
+        placeholder="Senha"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && entrar()}
+      />
       {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
-      <button onClick={entrar} disabled={enviando}
-        className="mt-4 w-full rounded-full bg-simp-teal py-3 font-bold uppercase text-white disabled:opacity-60">
+      <button
+        onClick={entrar}
+        disabled={enviando}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-accent py-3 font-bold uppercase text-brand transition hover:bg-accent-hover hover:text-on-dark disabled:opacity-60"
+      >
+        <LogIn size={18} />
         {enviando ? 'Entrando…' : 'Entrar'}
       </button>
     </div>
