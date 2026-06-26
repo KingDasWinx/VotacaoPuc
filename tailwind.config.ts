@@ -9,13 +9,6 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        puc: {
-          bordeaux: '#8B0033',
-          red: '#E8000D',
-          purple: '#5B0099',
-          dark: '#2d2d3a',
-          bg: '#f5f5f5',
-        },
         simp: {
           deep: '#0F3A4D',
           teal: '#0E7C86',

@@ -18,7 +18,7 @@ const CAMPOS_TEXTO: { key: keyof EventConfig; label: string }[] = [
 
 export function ConfigForm({ config }: { config: EventConfig }) {
   const router = useRouter()
-  const [form, setForm] = useState<Record<string, string | number | boolean>>({ ...config })
+  const [form, setForm] = useState<Record<string, string | number | boolean | null>>({ ...config })
   const [msg, setMsg] = useState('')
   const [salvando, setSalvando] = useState(false)
 

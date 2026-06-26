@@ -6,26 +6,6 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
-// 10 requests per minute — for /api/votos
-export const votosRatelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(10, '1 m'),
-  prefix: 'rl:votos',
-})
-
-// 5 requests per minute — for /api/candidatos and /api/upload
-export const candidatosRatelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, '1 m'),
-  prefix: 'rl:candidatos',
-})
-
-export const uploadRatelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, '1 m'),
-  prefix: 'rl:upload',
-})
-
 // 5 inscrições por minuto por IP
 export const inscricaoRatelimit = new Ratelimit({
   redis,
