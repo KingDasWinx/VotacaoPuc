@@ -16,6 +16,14 @@ const config: Config = {
           dark: '#2d2d3a',
           bg: '#f5f5f5',
         },
+        simp: {
+          deep: '#0F3A4D',
+          teal: '#0E7C86',
+          aqua: '#23B5B5',
+          ink: '#0B2530',
+          mist: '#EAF4F4',
+          bg: '#F6F9FA',
+        },
       },
       fontFamily: {
         montserrat: ['Montserrat', 'sans-serif'],
