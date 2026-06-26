@@ -26,6 +26,34 @@ export const uploadRatelimit = new Ratelimit({
   prefix: 'rl:upload',
 })
 
+// 5 inscrições por minuto por IP
+export const inscricaoRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 m'),
+  prefix: 'rl:inscricao',
+})
+
+// 5 uploads de comprovante por minuto por IP
+export const comprovanteRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 m'),
+  prefix: 'rl:comprovante',
+})
+
+// 20 buscas "meus ingressos" por minuto por IP
+export const lookupRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, '1 m'),
+  prefix: 'rl:lookup',
+})
+
+// 5 tentativas de login admin por minuto por IP
+export const adminLoginRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 m'),
+  prefix: 'rl:admin-login',
+})
+
 /**
  * Extracts client IP from Next.js request headers.
  * Falls back to 'anonymous' if not available.
