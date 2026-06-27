@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { isRequestAdmin } from '@/lib/admin-guard'
 import { toCsv } from '@/lib/csv'
+import { buildXlsx, buildPdf } from '@/lib/export-format'
 import { formatBRL } from '@/lib/money'
 import { formatCpf } from '@/lib/cpf'
+
+type Rows = (string | number)[][]
+type Formato = 'csv' | 'xlsx' | 'pdf'
 
 export async function GET(request: NextRequest) {
   if (!isRequestAdmin(request)) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   const tipo = request.nextUrl.searchParams.get('tipo') ?? 'participantes'
+  const formatoRaw = request.nextUrl.searchParams.get('formato') ?? 'csv'
+  const formato: Formato = (['csv', 'xlsx', 'pdf'] as const).includes(formatoRaw as Formato)
+    ? (formatoRaw as Formato)
+    : 'csv'
 
   if (tipo === 'pagamentos') {
     const { data, error } = await supabase
@@ -15,7 +23,7 @@ export async function GET(request: NextRequest) {
       .select('codigo, comprador_nome, comprador_cpf, comprador_telefone, quantidade, valor_total_centavos, status, metodo_comprovante, pago_em, created_at')
       .order('created_at', { ascending: false })
     if (error) return NextResponse.json({ error: 'Erro ao exportar' }, { status: 500 })
-    const rows: (string | number)[][] = [
+    const rows: Rows = [
       ['Codigo', 'Comprador', 'CPF', 'Telefone', 'Qtd', 'Valor', 'Status', 'Comprovante', 'Pago em', 'Criado em'],
       ...(data ?? []).map((p) => [
         p.codigo, p.comprador_nome, formatCpf(p.comprador_cpf), p.comprador_telefone,
@@ -23,7 +31,7 @@ export async function GET(request: NextRequest) {
         p.pago_em ?? '', p.created_at,
       ]),
     ]
-    return csvResponse(toCsv(rows), 'pagamentos.csv')
+    return await serialize(rows, 'pagamentos', 'Pagamentos', formato)
   }
 
   // participantes (credenciamento) — ingressos válidos de pedidos pagos
@@ -34,7 +42,7 @@ export async function GET(request: NextRequest) {
     .eq('pedidos.status', 'pago')
     .order('nome', { ascending: true })
   if (error) return NextResponse.json({ error: 'Erro ao exportar' }, { status: 500 })
-  const rows: (string | number)[][] = [
+  const rows: Rows = [
     ['Nome', 'CPF', 'Nascimento', 'Telefone', 'Pedido'],
     ...(data ?? []).map((i) => {
       const pedidoRel = i.pedidos as unknown as { codigo: string } | { codigo: string }[]
@@ -42,13 +50,25 @@ export async function GET(request: NextRequest) {
       return [i.nome, formatCpf(i.cpf), i.data_nascimento, i.telefone, codigo ?? '']
     }),
   ]
-  return csvResponse(toCsv(rows), 'credenciamento.csv')
+  return await serialize(rows, 'credenciamento', 'Credenciamento', formato)
 }
 
-function csvResponse(csv: string, filename: string): NextResponse {
-  return new NextResponse(csv, {
+async function serialize(rows: Rows, baseName: string, titulo: string, formato: Formato): Promise<NextResponse> {
+  if (formato === 'xlsx') {
+    const buf = await buildXlsx(titulo, rows)
+    return fileResponse(buf, `${baseName}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  }
+  if (formato === 'pdf') {
+    const buf = buildPdf(titulo, rows)
+    return fileResponse(buf, `${baseName}.pdf`, 'application/pdf')
+  }
+  return fileResponse(toCsv(rows), `${baseName}.csv`, 'text/csv; charset=utf-8')
+}
+
+function fileResponse(body: string | Buffer, filename: string, contentType: string): NextResponse {
+  return new NextResponse(body as BodyInit, {
     headers: {
-      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Type': contentType,
       'Content-Disposition': `attachment; filename="${filename}"`,
     },
   })

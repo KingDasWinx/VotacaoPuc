@@ -166,7 +166,10 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
         <ul className="space-y-1.5">
           {p.ingressos.map((ing) => (
             <li key={ing.id} className="flex items-center justify-between gap-3">
-              <span className={ing.status === 'cancelado' ? 'text-red-600 line-through' : 'text-ink/80'}>
+              <span
+                title={`${ing.nome} — ${formatCpf(ing.cpf)}`}
+                className={`min-w-0 truncate ${ing.status === 'cancelado' ? 'text-red-600 line-through' : 'text-ink/80'}`}
+              >
                 {ing.nome} — {formatCpf(ing.cpf)}
               </span>
               <button
@@ -212,9 +215,9 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
         </div>
       </div>
 
-      {/* Desktop: tabela */}
-      <div className="mt-4 hidden overflow-hidden rounded-2xl border border-line bg-white shadow-card md:block">
-        <table className="w-full border-collapse text-sm">
+      {/* Desktop: tabela (scroll horizontal em telas estreitas / tablet) */}
+      <div className="mt-4 hidden overflow-x-auto rounded-2xl border border-line bg-white shadow-card md:block">
+        <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-line bg-surface/50 text-left text-xs uppercase tracking-wide text-ink/55">
               <th className="px-4 py-3 font-semibold">Código</th>
@@ -244,10 +247,12 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
                     </button>
                   </td>
                   <td className="px-4 py-3">
-                    {p.comprador_nome}
+                    <span className="block max-w-[220px] truncate" title={p.comprador_nome}>
+                      {p.comprador_nome}
+                    </span>
                     <span className="block text-xs text-ink/55">{formatCpf(p.comprador_cpf)}</span>
                   </td>
-                  <td className="px-4 py-3 text-ink/70">{maskTelefone(p.comprador_telefone)}</td>
+                  <td className="px-4 py-3 text-ink/70">+55 {maskTelefone(p.comprador_telefone)}</td>
                   <td className="px-4 py-3">{p.quantidade}</td>
                   <td className="px-4 py-3 text-ink/70">{p.lote_nome}</td>
                   <td className="px-4 py-3 font-semibold">{formatBRL(p.valor_total_centavos)}</td>
@@ -276,8 +281,8 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
               <span className="font-extrabold text-brand">{p.codigo}</span>
               <StatusPill status={p.status} />
             </div>
-            <p className="mt-1 text-sm">{p.comprador_nome}</p>
-            <p className="text-xs text-ink/55">{formatCpf(p.comprador_cpf)} · {maskTelefone(p.comprador_telefone)}</p>
+            <p className="mt-1 truncate text-sm" title={p.comprador_nome}>{p.comprador_nome}</p>
+            <p className="text-xs text-ink/55">{formatCpf(p.comprador_cpf)} · +55 {maskTelefone(p.comprador_telefone)}</p>
             <p className="mt-1 text-sm text-ink/70">
               {p.lote_nome} · {p.quantidade}x · <span className="font-semibold text-ink">{formatBRL(p.valor_total_centavos)}</span>
             </p>

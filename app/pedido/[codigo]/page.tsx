@@ -9,11 +9,22 @@ import { SiteHeader } from '@/components/event/SiteHeader'
 
 export const dynamic = 'force-dynamic'
 
+function formatPeriodo(inicioISO: string, fimISO: string): string {
+  const tz = 'America/Sao_Paulo'
+  const ini = new Date(inicioISO)
+  const fim = new Date(fimISO)
+  const dia = (d: Date) => new Intl.DateTimeFormat('pt-BR', { day: 'numeric', timeZone: tz }).format(d)
+  const mesAno = new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric', timeZone: tz }).format(fim)
+  return dia(ini) === dia(fim) ? `${dia(fim)} ${mesAno}` : `${dia(ini)} e ${dia(fim)} ${mesAno}`
+}
+
 export default async function PedidoPage({ params }: { params: { codigo: string } }) {
   const config = await getEventConfig()
   const { data: pedido } = await supabase
     .from('pedidos')
-    .select('codigo, comprador_nome, quantidade, valor_total_centavos, status, metodo_comprovante')
+    .select(
+      'codigo, comprador_nome, quantidade, valor_total_centavos, status, metodo_comprovante, lotes(nome), ingressos(id, nome, status)'
+    )
     .eq('codigo', params.codigo)
     .single()
 
@@ -27,6 +38,10 @@ export default async function PedidoPage({ params }: { params: { codigo: string 
     txid: pedido.codigo,
   })
   const qr = await qrDataUrl(pixPayload)
+
+  const loteRel = pedido.lotes as unknown as { nome: string } | { nome: string }[] | null
+  const loteNome = (Array.isArray(loteRel) ? loteRel[0]?.nome : loteRel?.nome) ?? ''
+  const ingressos = (pedido.ingressos ?? []) as { id: string; nome: string; status: string }[]
 
   return (
     <>
@@ -47,6 +62,14 @@ export default async function PedidoPage({ params }: { params: { codigo: string 
           qrDataUrl={qr}
           whatsappNumero={config.whatsapp_numero}
           jaTemComprovante={pedido.metodo_comprovante !== 'nenhum'}
+          voucherBase={{
+            eventoNome: config.nome,
+            periodo: formatPeriodo(config.data_inicio, config.data_fim),
+            local: config.local ?? '',
+            loteNome,
+            codigo: pedido.codigo,
+          }}
+          ingressos={ingressos}
         />
       </main>
     </>

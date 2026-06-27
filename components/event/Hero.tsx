@@ -1,3 +1,5 @@
+import { Calendar, MapPin } from 'lucide-react'
+
 function formatPeriodo(inicioISO: string, fimISO: string): string {
   const tz = 'America/Sao_Paulo'
   const ini = new Date(inicioISO)
@@ -32,9 +34,6 @@ export function Hero({
       <div className="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-accent-tint/10 blur-3xl" />
 
       <div className="relative mx-auto max-w-3xl px-5 py-16 text-center sm:py-20">
-        <p className="animate-fade-up text-xs font-bold uppercase tracking-[0.28em] text-accent-tint">
-          1º Simpósio
-        </p>
         <h1
           className="animate-fade-up mt-3 text-balance text-3xl font-extrabold leading-tight sm:text-5xl"
           style={{ animationDelay: '60ms' }}
@@ -54,11 +53,11 @@ export function Hero({
           style={{ animationDelay: '180ms' }}
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 font-semibold backdrop-blur">
-            <span aria-hidden>📅</span> {formatPeriodo(dataInicio, dataFim)}
+            <Calendar size={15} className="text-accent-tint" aria-hidden /> {formatPeriodo(dataInicio, dataFim)}
           </span>
           {local && (
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 font-semibold backdrop-blur">
-              <span aria-hidden>📍</span> {local}
+              <MapPin size={15} className="text-accent-tint" aria-hidden /> {local}
             </span>
           )}
         </div>

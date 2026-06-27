@@ -11,7 +11,7 @@ export default function MeusIngressosPage() {
         <div className="animate-fade-up">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent-hover">Consulta</p>
           <h1 className="mt-1 text-3xl font-extrabold text-brand">Meus ingressos</h1>
-          <p className="mt-1 text-ink/60">Digite seu CPF para ver suas inscrições.</p>
+          <p className="mt-1 text-ink/60">Suas inscrições salvas neste dispositivo.</p>
         </div>
         <MeusIngressosClient />
       </main>

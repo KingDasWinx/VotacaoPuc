@@ -16,7 +16,7 @@ interface Participante {
 const vazio = (): Participante => ({ nome: '', cpf: '', data_nascimento: '', telefone: '' })
 
 const inputClass =
-  'w-full rounded-xl border border-line bg-canvas/40 px-3.5 py-2.5 text-ink placeholder:text-ink/40 focus:bg-white'
+  'w-full rounded-xl border border-line bg-canvas/40 px-4 py-3 text-base text-ink placeholder:text-ink/40 focus:bg-white'
 
 export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; precoCentavos: number }) {
   const router = useRouter()
@@ -83,19 +83,25 @@ export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; 
             )}
           </div>
           <div className="mt-4 grid gap-3">
-            <input
-              className={inputClass}
-              placeholder="Nome completo"
-              value={p.nome}
-              onChange={(e) => update(i, 'nome', e.target.value)}
-            />
-            <input
-              className={inputClass}
-              placeholder="CPF"
-              inputMode="numeric"
-              value={p.cpf}
-              onChange={(e) => update(i, 'cpf', maskCpf(e.target.value))}
-            />
+            <label className="text-xs font-semibold text-ink/55">
+              Nome completo
+              <input
+                className={`${inputClass} mt-1`}
+                placeholder="Ex.: Maria da Silva"
+                value={p.nome}
+                onChange={(e) => update(i, 'nome', e.target.value)}
+              />
+            </label>
+            <label className="text-xs font-semibold text-ink/55">
+              CPF
+              <input
+                className={`${inputClass} mt-1`}
+                placeholder="000.000.000-00"
+                inputMode="numeric"
+                value={p.cpf}
+                onChange={(e) => update(i, 'cpf', maskCpf(e.target.value))}
+              />
+            </label>
             <label className="text-xs font-semibold text-ink/55">
               Data de nascimento
               <input
@@ -105,13 +111,21 @@ export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; 
                 onChange={(e) => update(i, 'data_nascimento', e.target.value)}
               />
             </label>
-            <input
-              className={inputClass}
-              placeholder="Telefone (WhatsApp)"
-              inputMode="tel"
-              value={p.telefone}
-              onChange={(e) => update(i, 'telefone', maskTelefone(e.target.value))}
-            />
+            <label className="text-xs font-semibold text-ink/55">
+              Telefone (WhatsApp)
+              <div className="mt-1 flex items-stretch">
+                <span className="inline-flex items-center rounded-l-xl border border-r-0 border-line bg-surface px-3 text-base font-semibold text-ink/70">
+                  +55
+                </span>
+                <input
+                  className={`${inputClass} !rounded-l-none`}
+                  placeholder="45 9 9134-8030"
+                  inputMode="tel"
+                  value={p.telefone}
+                  onChange={(e) => update(i, 'telefone', maskTelefone(e.target.value))}
+                />
+              </div>
+            </label>
           </div>
         </div>
       ))}
@@ -146,6 +160,18 @@ export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; 
         >
           {enviando ? 'Processando…' : <>Ir para pagamento <ArrowRight size={18} /></>}
         </button>
+        <p className="mt-3 text-center text-xs text-ink/55">
+          Ao continuar, você concorda com o{' '}
+          <a
+            href="/regulamento"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-brand underline underline-offset-2 hover:text-brand-hover"
+          >
+            regulamento
+          </a>
+          .
+        </p>
       </div>
     </div>
   )

@@ -71,6 +71,7 @@ create table if not exists ingressos (
   telefone         text not null,
   status           text not null default 'valido'
                    check (status in ('valido','cancelado')),
+  checkin_em       timestamptz,
   created_at       timestamptz not null default now()
 );
 create index if not exists idx_ingressos_pedido on ingressos(pedido_id);

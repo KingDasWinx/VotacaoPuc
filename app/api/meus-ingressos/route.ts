@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { normalizeCpf, isValidCpf } from '@/lib/cpf'
 import { lookupRatelimit, getClientIp } from '@/lib/ratelimit'
 
 export async function POST(request: NextRequest) {
@@ -16,30 +15,22 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
   }
-  const cpfRaw = (body as { cpf?: unknown }).cpf
-  const cpf = typeof cpfRaw === 'string' ? normalizeCpf(cpfRaw) : ''
-  if (!isValidCpf(cpf)) {
-    return NextResponse.json({ error: 'CPF inválido' }, { status: 400 })
+
+  const codigosRaw = (body as { codigos?: unknown }).codigos
+  const codigos = Array.isArray(codigosRaw)
+    ? codigosRaw.filter((c): c is string => typeof c === 'string').slice(0, 100)
+    : []
+
+  if (codigos.length === 0) {
+    return NextResponse.json({ pedidos: [] })
   }
-
-  // IDs de pedidos onde o CPF aparece em algum ingresso
-  const { data: ingressoMatches } = await supabase
-    .from('ingressos')
-    .select('pedido_id')
-    .eq('cpf', cpf)
-  const pedidoIds = Array.from(new Set((ingressoMatches ?? []).map((r) => r.pedido_id)))
-
-  // Pedidos do comprador OU com algum ingresso do CPF
-  const orFilter = pedidoIds.length
-    ? `comprador_cpf.eq.${cpf},id.in.(${pedidoIds.join(',')})`
-    : `comprador_cpf.eq.${cpf}`
 
   const { data: pedidos, error } = await supabase
     .from('pedidos')
     .select(
       'codigo, status, valor_total_centavos, quantidade, created_at, lotes(nome), ingressos(nome, status)'
     )
-    .or(orFilter)
+    .in('codigo', codigos)
     .order('created_at', { ascending: false })
 
   if (error) {
