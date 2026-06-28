@@ -77,11 +77,20 @@ create table if not exists ingressos (
 create index if not exists idx_ingressos_pedido on ingressos(pedido_id);
 create index if not exists idx_ingressos_cpf    on ingressos(cpf);
 
+-- ---------- checkins (log de entradas — evento multi-dia / reentrada) ----------
+create table if not exists checkins (
+  id           uuid primary key default gen_random_uuid(),
+  ingresso_id  uuid not null references ingressos(id) on delete cascade,
+  created_at   timestamptz not null default now()
+);
+create index if not exists idx_checkins_ingresso on checkins(ingresso_id);
+
 -- ---------- RLS: travar acesso anônimo (service role faz bypass) ----------
 alter table event_config enable row level security;
 alter table lotes        enable row level security;
 alter table pedidos      enable row level security;
 alter table ingressos    enable row level security;
+alter table checkins     enable row level security;
 -- Nenhuma policy: somente a service-role key (server-side) acessa.
 
 -- ---------- Storage buckets ----------

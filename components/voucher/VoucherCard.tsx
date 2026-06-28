@@ -16,7 +16,7 @@ export interface VoucherInfo {
 
 // Dimensões lógicas (o PNG sai em 3x para ficar nítido no print/celular).
 const W = 380
-const H = 600
+const H = 580
 const DPR = 3
 
 const COR = {
@@ -199,12 +199,6 @@ export function VoucherCard({ info }: { info: VoucherInfo }) {
       ctx.letterSpacing = '2px'
       ctx.fillText(info.codigo, W / 2, y)
       ctx.restore()
-
-      // instrução
-      y += 22
-      ctx.fillStyle = COR.inkSoft
-      ctx.font = '600 11px Montserrat, sans-serif'
-      ctx.fillText('Apresente este QR Code na entrada do evento', W / 2, y)
 
       ctx.textAlign = 'left'
       if (!cancelado) setPronto(true)

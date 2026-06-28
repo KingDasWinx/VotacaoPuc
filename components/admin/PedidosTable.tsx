@@ -1,12 +1,12 @@
 'use client'
 
-import { Fragment, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatBRL } from '@/lib/money'
 import { formatCpf } from '@/lib/cpf'
 import { maskTelefone } from '@/lib/masks'
 import {
-  Search, Check, Ban, RotateCcw, FileText, MessageCircle, ChevronDown,
+  Search, Check, Ban, RotateCcw, FileText, MessageCircle, ChevronRight, X,
 } from 'lucide-react'
 
 export interface PedidoRow {
@@ -22,7 +22,14 @@ export interface PedidoRow {
   tem_comprovante: boolean
   observacao_admin: string | null
   lote_nome: string
-  ingressos: { id: string; nome: string; cpf: string; status: string }[]
+  ingressos: { id: string; nome: string; cpf: string; data_nascimento: string; telefone: string; status: string }[]
+}
+
+// "1990-05-20" -> "20/05/1990" (sem problemas de fuso, já que é data pura)
+function formatData(iso: string): string {
+  if (!iso) return '—'
+  const [a, m, d] = iso.split('-')
+  return d && m && a ? `${d}/${m}/${a}` : iso
 }
 
 const STATUS_CLASSE: Record<string, string> = {
@@ -50,7 +57,7 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
   const router = useRouter()
   const [filtroStatus, setFiltroStatus] = useState('todos')
   const [busca, setBusca] = useState('')
-  const [expandido, setExpandido] = useState<string | null>(null)
+  const [selecionadoId, setSelecionadoId] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
 
   const filtrados = useMemo(() => {
@@ -65,6 +72,25 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
       )
     })
   }, [pedidos, filtroStatus, busca])
+
+  // Mantém o drawer sincronizado com os dados mais recentes após router.refresh().
+  const selecionado = useMemo(
+    () => pedidos.find((p) => p.id === selecionadoId) ?? null,
+    [pedidos, selecionadoId],
+  )
+
+  useEffect(() => {
+    if (!selecionadoId) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setSelecionadoId(null)
+    }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [selecionadoId])
 
   async function setStatus(id: string, status: string) {
     if (status === 'cancelado' && !confirm('Cancelar este pedido?')) return
@@ -102,89 +128,6 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
     const num = digits.startsWith('55') ? digits : `55${digits}`
     const texto = encodeURIComponent(`Olá ${p.comprador_nome}! Sobre sua inscrição ${p.codigo} no Simpósio.`)
     window.open(`https://wa.me/${num}?text=${texto}`, '_blank')
-  }
-
-  const btn = 'inline-grid h-8 w-8 place-items-center rounded-lg transition disabled:opacity-40'
-
-  function Acoes({ p }: { p: PedidoRow }) {
-    return (
-      <div className="flex flex-wrap gap-1.5">
-        {p.status !== 'pago' && (
-          <button
-            disabled={ocupado}
-            onClick={() => setStatus(p.id, 'pago')}
-            title="Marcar como pago"
-            className={`${btn} bg-brand/10 text-brand hover:bg-brand hover:text-on-dark`}
-          >
-            <Check size={16} />
-          </button>
-        )}
-        {p.status !== 'cancelado' && (
-          <button
-            disabled={ocupado}
-            onClick={() => setStatus(p.id, 'cancelado')}
-            title="Cancelar pedido"
-            className={`${btn} bg-red-100 text-red-600 hover:bg-red-600 hover:text-white`}
-          >
-            <Ban size={16} />
-          </button>
-        )}
-        {p.status === 'cancelado' && (
-          <button
-            disabled={ocupado}
-            onClick={() => setStatus(p.id, 'pendente')}
-            title="Reabrir pedido"
-            className={`${btn} bg-accent-tint/40 text-accent-hover hover:bg-accent hover:text-brand`}
-          >
-            <RotateCcw size={16} />
-          </button>
-        )}
-        {p.tem_comprovante && (
-          <button
-            onClick={() => verComprovante(p.id)}
-            title="Ver comprovante"
-            className={`${btn} bg-surface text-brand hover:bg-brand hover:text-on-dark`}
-          >
-            <FileText size={16} />
-          </button>
-        )}
-        <button
-          onClick={() => whatsapp(p)}
-          title="Abrir WhatsApp"
-          className={`${btn} bg-[#25D366]/15 text-[#1c9b4d] hover:bg-[#25D366] hover:text-white`}
-        >
-          <MessageCircle size={16} />
-        </button>
-      </div>
-    )
-  }
-
-  function Participantes({ p }: { p: PedidoRow }) {
-    return (
-      <>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/55">Participantes</p>
-        <ul className="space-y-1.5">
-          {p.ingressos.map((ing) => (
-            <li key={ing.id} className="flex items-center justify-between gap-3">
-              <span
-                title={`${ing.nome} — ${formatCpf(ing.cpf)}`}
-                className={`min-w-0 truncate ${ing.status === 'cancelado' ? 'text-red-600 line-through' : 'text-ink/80'}`}
-              >
-                {ing.nome} — {formatCpf(ing.cpf)}
-              </span>
-              <button
-                disabled={ocupado}
-                onClick={() => cancelarIngresso(ing.id, ing.status)}
-                className="shrink-0 text-xs font-semibold text-brand underline-offset-2 transition hover:underline"
-              >
-                {ing.status === 'cancelado' ? 'Reativar' : 'Cancelar ingresso'}
-              </button>
-            </li>
-          ))}
-        </ul>
-        {p.observacao_admin && <p className="mt-2 text-xs text-ink/65">Obs.: {p.observacao_admin}</p>}
-      </>
-    )
   }
 
   return (
@@ -227,46 +170,32 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
               <th className="px-4 py-3 font-semibold">Lote</th>
               <th className="px-4 py-3 font-semibold">Valor</th>
               <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Ações</th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {filtrados.map((p) => (
-              <Fragment key={p.id}>
-                <tr className="border-b border-line/60 align-middle transition hover:bg-surface/30">
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => setExpandido(expandido === p.id ? null : p.id)}
-                      className="inline-flex items-center gap-1 font-bold text-brand"
-                    >
-                      {p.codigo}
-                      <ChevronDown
-                        size={14}
-                        className={`transition ${expandido === p.id ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="block max-w-[220px] truncate" title={p.comprador_nome}>
-                      {p.comprador_nome}
-                    </span>
-                    <span className="block text-xs text-ink/55">{formatCpf(p.comprador_cpf)}</span>
-                  </td>
-                  <td className="px-4 py-3 text-ink/70">+55 {maskTelefone(p.comprador_telefone)}</td>
-                  <td className="px-4 py-3">{p.quantidade}</td>
-                  <td className="px-4 py-3 text-ink/70">{p.lote_nome}</td>
-                  <td className="px-4 py-3 font-semibold">{formatBRL(p.valor_total_centavos)}</td>
-                  <td className="px-4 py-3"><StatusPill status={p.status} /></td>
-                  <td className="px-4 py-3"><Acoes p={p} /></td>
-                </tr>
-                {expandido === p.id && (
-                  <tr className="border-b border-line/60 bg-surface/30">
-                    <td colSpan={8} className="px-4 py-3">
-                      <Participantes p={p} />
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
+              <tr
+                key={p.id}
+                onClick={() => setSelecionadoId(p.id)}
+                className="cursor-pointer border-b border-line/60 align-middle transition hover:bg-surface/40"
+              >
+                <td className="px-4 py-3 font-bold text-brand">{p.codigo}</td>
+                <td className="px-4 py-3">
+                  <span className="block max-w-[220px] truncate" title={p.comprador_nome}>
+                    {p.comprador_nome}
+                  </span>
+                  <span className="block text-xs text-ink/55">{formatCpf(p.comprador_cpf)}</span>
+                </td>
+                <td className="px-4 py-3 text-ink/70">+55 {maskTelefone(p.comprador_telefone)}</td>
+                <td className="px-4 py-3">{p.quantidade}</td>
+                <td className="px-4 py-3 text-ink/70">{p.lote_nome}</td>
+                <td className="px-4 py-3 font-semibold">{formatBRL(p.valor_total_centavos)}</td>
+                <td className="px-4 py-3"><StatusPill status={p.status} /></td>
+                <td className="px-4 py-3 text-ink/35">
+                  <ChevronRight size={18} />
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -276,32 +205,22 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
       {/* Mobile: cards */}
       <div className="mt-4 space-y-3 md:hidden">
         {filtrados.map((p) => (
-          <div key={p.id} className="rounded-2xl border border-line bg-white p-4 shadow-card">
+          <button
+            key={p.id}
+            onClick={() => setSelecionadoId(p.id)}
+            className="block w-full rounded-2xl border border-line bg-white p-4 text-left shadow-card transition active:scale-[0.99]"
+          >
             <div className="flex items-center justify-between">
               <span className="font-extrabold text-brand">{p.codigo}</span>
               <StatusPill status={p.status} />
             </div>
             <p className="mt-1 truncate text-sm" title={p.comprador_nome}>{p.comprador_nome}</p>
             <p className="text-xs text-ink/55">{formatCpf(p.comprador_cpf)} · +55 {maskTelefone(p.comprador_telefone)}</p>
-            <p className="mt-1 text-sm text-ink/70">
-              {p.lote_nome} · {p.quantidade}x · <span className="font-semibold text-ink">{formatBRL(p.valor_total_centavos)}</span>
+            <p className="mt-1 flex items-center justify-between text-sm text-ink/70">
+              <span>{p.lote_nome} · {p.quantidade}x · <span className="font-semibold text-ink">{formatBRL(p.valor_total_centavos)}</span></span>
+              <ChevronRight size={16} className="text-ink/35" />
             </p>
-            <div className="mt-3">
-              <Acoes p={p} />
-            </div>
-            <button
-              onClick={() => setExpandido(expandido === p.id ? null : p.id)}
-              className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand"
-            >
-              Participantes
-              <ChevronDown size={13} className={`transition ${expandido === p.id ? 'rotate-180' : ''}`} />
-            </button>
-            {expandido === p.id && (
-              <div className="mt-2 rounded-xl bg-surface/40 p-3">
-                <Participantes p={p} />
-              </div>
-            )}
-          </div>
+          </button>
         ))}
         {filtrados.length === 0 && (
           <p className="rounded-2xl border border-dashed border-line py-10 text-center text-ink/55">
@@ -309,6 +228,156 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
           </p>
         )}
       </div>
+
+      {/* Drawer lateral */}
+      {selecionado && (
+        <div
+          className="animate-fade-in fixed inset-0 z-50 flex justify-end bg-ink/50 backdrop-blur-sm"
+          onClick={() => setSelecionadoId(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="animate-slide-in-right flex h-full w-full max-w-md flex-col overflow-y-auto bg-canvas shadow-card-hover"
+          >
+            {/* Cabeçalho */}
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-canvas/95 px-5 py-4 backdrop-blur">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Pedido</p>
+                <p className="text-xl font-extrabold text-brand">{selecionado.codigo}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <StatusPill status={selecionado.status} />
+                <button
+                  onClick={() => setSelecionadoId(null)}
+                  aria-label="Fechar"
+                  className="grid h-9 w-9 place-items-center rounded-full text-ink/50 transition hover:bg-surface hover:text-ink"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-5 px-5 py-5">
+              {/* Comprador */}
+              <section className="rounded-2xl border border-line bg-white p-4 shadow-card">
+                <p className="text-xs font-bold uppercase tracking-wide text-ink/45">Comprador</p>
+                <p className="mt-1 font-bold text-ink">{selecionado.comprador_nome}</p>
+                <dl className="mt-2 space-y-1 text-sm text-ink/70">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink/45">CPF</dt>
+                    <dd>{formatCpf(selecionado.comprador_cpf)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink/45">Telefone</dt>
+                    <dd>+55 {maskTelefone(selecionado.comprador_telefone)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink/45">Lote</dt>
+                    <dd className="text-right">{selecionado.lote_nome}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink/45">Quantidade</dt>
+                    <dd>{selecionado.quantidade}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-ink/45">Valor</dt>
+                    <dd className="font-bold text-brand">{formatBRL(selecionado.valor_total_centavos)}</dd>
+                  </div>
+                </dl>
+                {selecionado.observacao_admin && (
+                  <p className="mt-3 rounded-xl bg-surface/60 px-3 py-2 text-xs text-ink/65">
+                    Obs.: {selecionado.observacao_admin}
+                  </p>
+                )}
+              </section>
+
+              {/* Ações */}
+              <section className="rounded-2xl border border-line bg-white p-4 shadow-card">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wide text-ink/45">Ações</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {selecionado.status !== 'pago' && (
+                    <button
+                      disabled={ocupado}
+                      onClick={() => setStatus(selecionado.id, 'pago')}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-brand px-3 py-2.5 text-sm font-semibold text-on-dark transition hover:bg-brand-hover disabled:opacity-50"
+                    >
+                      <Check size={16} /> Marcar pago
+                    </button>
+                  )}
+                  {selecionado.status !== 'cancelado' && (
+                    <button
+                      disabled={ocupado}
+                      onClick={() => setStatus(selecionado.id, 'cancelado')}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-red-100 px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white disabled:opacity-50"
+                    >
+                      <Ban size={16} /> Cancelar
+                    </button>
+                  )}
+                  {selecionado.status === 'cancelado' && (
+                    <button
+                      disabled={ocupado}
+                      onClick={() => setStatus(selecionado.id, 'pendente')}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-accent-tint/40 px-3 py-2.5 text-sm font-semibold text-accent-hover transition hover:bg-accent hover:text-brand disabled:opacity-50"
+                    >
+                      <RotateCcw size={16} /> Reabrir
+                    </button>
+                  )}
+                  {selecionado.tem_comprovante && (
+                    <button
+                      onClick={() => verComprovante(selecionado.id)}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-surface px-3 py-2.5 text-sm font-semibold text-brand transition hover:bg-brand hover:text-on-dark"
+                    >
+                      <FileText size={16} /> Comprovante
+                    </button>
+                  )}
+                  <button
+                    onClick={() => whatsapp(selecionado)}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#25D366]/15 px-3 py-2.5 text-sm font-semibold text-[#1c9b4d] transition hover:bg-[#25D366] hover:text-white"
+                  >
+                    <MessageCircle size={16} /> WhatsApp
+                  </button>
+                </div>
+              </section>
+
+              {/* Participantes */}
+              <section className="rounded-2xl border border-line bg-white p-4 shadow-card">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wide text-ink/45">
+                  Participantes ({selecionado.ingressos.length})
+                </p>
+                <ul className="space-y-3">
+                  {selecionado.ingressos.map((ing) => (
+                    <li
+                      key={ing.id}
+                      className="flex items-start justify-between gap-3 rounded-xl border border-line/70 bg-canvas/40 p-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p
+                          title={ing.nome}
+                          className={`truncate text-base font-bold ${ing.status === 'cancelado' ? 'text-red-600 line-through' : 'text-ink'}`}
+                        >
+                          {ing.nome}
+                        </p>
+                        <p className="mt-1 text-sm text-ink/70">CPF: {formatCpf(ing.cpf)}</p>
+                        <p className="text-sm text-ink/70">Nascimento: {formatData(ing.data_nascimento)}</p>
+                        <p className="text-sm text-ink/70">Telefone: +55 {maskTelefone(ing.telefone)}</p>
+                      </div>
+                      <button
+                        disabled={ocupado}
+                        onClick={() => cancelarIngresso(ing.id, ing.status)}
+                        className="shrink-0 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-brand transition hover:bg-surface disabled:opacity-50"
+                      >
+                        {ing.status === 'cancelado' ? 'Reativar' : 'Cancelar'}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

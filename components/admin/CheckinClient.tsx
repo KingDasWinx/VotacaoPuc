@@ -2,22 +2,28 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Html5Qrcode } from 'html5-qrcode'
-import { CheckCircle2, XCircle, AlertTriangle, Camera, ScanLine, RotateCcw } from 'lucide-react'
+import { CheckCircle2, XCircle, AlertTriangle, Camera, ScanLine, RotateCcw, LogIn } from 'lucide-react'
 
-type Tipo = 'ok' | 'ja_usado' | 'invalido' | 'nao_encontrado' | 'erro'
+type Tipo = 'ok' | 'duplicado' | 'invalido' | 'nao_encontrado' | 'erro'
 interface Resultado {
   tipo: Tipo
   nome?: string
   mensagem?: string
+  entradas?: number
   hora?: string
+  horaAnterior?: string
 }
 
-const VISUAL: Record<Tipo, { Icon: typeof CheckCircle2; titulo: string; classe: string; icone: string }> = {
-  ok: { Icon: CheckCircle2, titulo: 'Check-in confirmado', classe: 'bg-brand text-on-dark', icone: 'text-accent-tint' },
-  ja_usado: { Icon: AlertTriangle, titulo: 'Ingresso já utilizado', classe: 'bg-amber-500 text-white', icone: 'text-white' },
-  invalido: { Icon: XCircle, titulo: 'Ingresso inválido', classe: 'bg-red-600 text-white', icone: 'text-white' },
-  nao_encontrado: { Icon: XCircle, titulo: 'Não encontrado', classe: 'bg-red-600 text-white', icone: 'text-white' },
-  erro: { Icon: XCircle, titulo: 'Erro', classe: 'bg-red-600 text-white', icone: 'text-white' },
+const VISUAL: Record<Tipo, { Icon: typeof CheckCircle2; classe: string; icone: string }> = {
+  ok: { Icon: CheckCircle2, classe: 'bg-brand text-on-dark', icone: 'text-accent-tint' },
+  duplicado: { Icon: AlertTriangle, classe: 'bg-amber-500 text-white', icone: 'text-white' },
+  invalido: { Icon: XCircle, classe: 'bg-red-600 text-white', icone: 'text-white' },
+  nao_encontrado: { Icon: XCircle, classe: 'bg-red-600 text-white', icone: 'text-white' },
+  erro: { Icon: XCircle, classe: 'bg-red-600 text-white', icone: 'text-white' },
+}
+
+function hhmm(iso?: string): string | undefined {
+  return iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : undefined
 }
 
 export function CheckinClient() {
@@ -50,10 +56,14 @@ export function CheckinClient() {
         body: JSON.stringify({ ingressoId: texto.trim() }),
       })
       const data = await res.json()
-      const hora = data.checkin_em
-        ? new Date(data.checkin_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        : undefined
-      setResultado({ tipo: (data.resultado as Tipo) ?? 'erro', nome: data.nome, mensagem: data.mensagem, hora })
+      setResultado({
+        tipo: (data.resultado as Tipo) ?? 'erro',
+        nome: data.nome,
+        mensagem: data.mensagem,
+        entradas: data.entradas,
+        hora: hhmm(data.registrada_em),
+        horaAnterior: hhmm(data.entrada_anterior),
+      })
     } catch {
       setResultado({ tipo: 'erro', mensagem: 'Falha de conexão. Tente novamente.' })
     }
@@ -90,6 +100,12 @@ export function CheckinClient() {
   }, [])
 
   const vis = resultado ? VISUAL[resultado.tipo] : null
+  const entradas = resultado?.entradas ?? 0
+  const reentrada = resultado?.tipo === 'ok' && entradas > 1
+
+  function tituloOk(): string {
+    return reentrada ? `Reentrada registrada` : 'Entrada registrada'
+  }
 
   return (
     <div className="mt-6">
@@ -122,15 +138,46 @@ export function CheckinClient() {
         <div className="animate-scale-in">
           <div className={`flex flex-col items-center rounded-3xl p-8 text-center shadow-card ${vis.classe}`}>
             <vis.Icon size={72} className={vis.icone} strokeWidth={2} />
-            <h2 className="mt-4 text-2xl font-extrabold">{vis.titulo}</h2>
+            <h2 className="mt-4 text-2xl font-extrabold">
+              {resultado.tipo === 'ok' && tituloOk()}
+              {resultado.tipo === 'duplicado' && 'Entrada já registrada'}
+              {resultado.tipo === 'invalido' && 'Ingresso inválido'}
+              {resultado.tipo === 'nao_encontrado' && 'Não encontrado'}
+              {resultado.tipo === 'erro' && 'Erro'}
+            </h2>
             {resultado.nome && <p className="mt-2 text-xl font-bold">{resultado.nome}</p>}
-            {resultado.tipo === 'ja_usado' && resultado.hora && (
-              <p className="mt-1 text-sm font-semibold opacity-90">Já validado às {resultado.hora}</p>
+
+            {resultado.tipo === 'ok' && (
+              <>
+                {resultado.hora && (
+                  <p className="mt-1 text-sm font-semibold opacity-90">Registrada às {resultado.hora}</p>
+                )}
+                <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-sm font-bold">
+                  <LogIn size={15} />
+                  {entradas === 1 ? '1ª entrada' : `${entradas}ª entrada`}
+                </span>
+                {reentrada && resultado.horaAnterior && (
+                  <p className="mt-2 text-xs opacity-80">Entrada anterior às {resultado.horaAnterior}</p>
+                )}
+              </>
             )}
-            {resultado.tipo === 'ok' && resultado.hora && (
-              <p className="mt-1 text-sm font-semibold opacity-90">Entrada liberada às {resultado.hora}</p>
+
+            {resultado.tipo === 'duplicado' && (
+              <>
+                <p className="mt-1 text-sm font-semibold opacity-90">
+                  Leitura repetida — registrada há instantes ({resultado.hora}).
+                </p>
+                {entradas > 0 && (
+                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-4 py-1.5 text-sm font-bold">
+                    <LogIn size={15} /> {entradas} entrada(s) no total
+                  </span>
+                )}
+              </>
             )}
-            {resultado.mensagem && <p className="mt-1 text-sm opacity-90">{resultado.mensagem}</p>}
+
+            {resultado.mensagem && resultado.tipo !== 'duplicado' && (
+              <p className="mt-1 text-sm opacity-90">{resultado.mensagem}</p>
+            )}
           </div>
 
           <button

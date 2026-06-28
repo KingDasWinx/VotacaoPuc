@@ -179,8 +179,8 @@ export function PagamentoClient({
             <div className="mb-4 flex items-start gap-2 rounded-2xl border border-accent/30 bg-accent-tint/20 px-4 py-3 text-sm text-ink/70">
               <Clock size={16} className="mt-0.5 shrink-0 text-accent-hover" />
               <span>
-                Pagamento em análise. Salve seu ingresso agora — ele será validado na entrada assim que
-                confirmarmos o pagamento.
+                Pagamento em análise. Salve seu ingresso agora — ele será confirmado assim que
+                validarmos o pagamento.
               </span>
             </div>
           )}

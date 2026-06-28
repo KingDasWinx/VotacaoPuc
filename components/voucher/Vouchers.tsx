@@ -20,7 +20,7 @@ export function Vouchers({
         {validos.length > 1 ? 'Seus ingressos' : 'Seu ingresso'}
       </h2>
       <p className="mt-1 text-sm text-ink/60">
-        Salve {validos.length > 1 ? 'cada' : 'o'} ingresso e apresente o QR Code na entrada.
+        Salve {validos.length > 1 ? 'cada' : 'o'} ingresso para guardar com você.
       </p>
       <div className="mt-5 grid justify-items-center gap-8 sm:grid-cols-2">
         {validos.map((i) => (

@@ -54,12 +54,17 @@ const config: Config = {
           from: { transform: 'translateY(100%)' },
           to: { transform: 'translateY(0)' },
         },
+        'slide-in-right': {
+          from: { transform: 'translateX(100%)' },
+          to: { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.5s ease-out both',
         'fade-up': 'fade-up 0.5s ease-out both',
         'scale-in': 'scale-in 0.35s ease-out both',
         'slide-up': 'slide-up 0.3s ease-out',
+        'slide-in-right': 'slide-in-right 0.3s ease-out',
       },
     },
   },

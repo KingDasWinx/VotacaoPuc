@@ -4,6 +4,9 @@ import { isRequestAdmin } from '@/lib/admin-guard'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+// Janela para ignorar leituras repetidas do mesmo QR (evita contar a mesma entrada 2x).
+const DEDUP_MS = 12_000
+
 export async function POST(request: NextRequest) {
   if (!isRequestAdmin(request)) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
@@ -21,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   const { data: ing } = await supabase
     .from('ingressos')
-    .select('id, nome, status, checkin_em, pedidos!inner(codigo, status)')
+    .select('id, nome, status, pedidos!inner(codigo, status)')
     .eq('id', id)
     .maybeSingle()
 
@@ -41,27 +44,39 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  if (ing.checkin_em) {
-    return NextResponse.json({ resultado: 'ja_usado', nome: ing.nome, checkin_em: ing.checkin_em })
+  // Entradas já registradas (mais recente primeiro).
+  const { data: anteriores } = await supabase
+    .from('checkins')
+    .select('created_at')
+    .eq('ingresso_id', id)
+    .order('created_at', { ascending: false })
+  const lista = anteriores ?? []
+  const ultima = lista[0]?.created_at as string | undefined
+
+  // Leitura repetida do mesmo QR em poucos segundos → não conta de novo.
+  if (ultima && Date.now() - new Date(ultima).getTime() < DEDUP_MS) {
+    return NextResponse.json({
+      resultado: 'duplicado',
+      nome: ing.nome,
+      entradas: lista.length,
+      registrada_em: ultima,
+    })
   }
 
-  // Check-in atômico: só grava se ainda estiver null (evita corrida em scans simultâneos).
-  const agora = new Date().toISOString()
-  const { data: updated } = await supabase
-    .from('ingressos')
-    .update({ checkin_em: agora })
-    .eq('id', id)
-    .is('checkin_em', null)
-    .select('id')
-
-  if (!updated || updated.length === 0) {
-    const { data: again } = await supabase
-      .from('ingressos')
-      .select('checkin_em')
-      .eq('id', id)
-      .maybeSingle()
-    return NextResponse.json({ resultado: 'ja_usado', nome: ing.nome, checkin_em: again?.checkin_em ?? agora })
+  const agoraIso = new Date().toISOString()
+  const { error: insErr } = await supabase.from('checkins').insert({ ingresso_id: id })
+  if (insErr) {
+    return NextResponse.json({ resultado: 'erro', nome: ing.nome, mensagem: 'Erro ao registrar entrada' })
   }
+  // Mantém checkin_em como "última entrada" (conveniência para listagens).
+  await supabase.from('ingressos').update({ checkin_em: agoraIso }).eq('id', id)
 
-  return NextResponse.json({ resultado: 'ok', nome: ing.nome, checkin_em: agora, codigo: pedido.codigo })
+  return NextResponse.json({
+    resultado: 'ok',
+    nome: ing.nome,
+    codigo: pedido.codigo,
+    entradas: lista.length + 1,
+    registrada_em: agoraIso,
+    entrada_anterior: ultima ?? null,
+  })
 }
