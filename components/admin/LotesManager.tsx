@@ -4,104 +4,89 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatBRL } from '@/lib/money'
 import type { Lote } from '@/lib/types'
-import { Plus, Power, Trash2, Pencil, Save, X } from 'lucide-react'
+import { Modal } from '@/components/admin/ui/Overlay'
+import { Plus, Power, Trash2, Pencil } from 'lucide-react'
 
-// Converte "150,00" ou "150.00" em centavos (15000)
 function reaisParaCentavos(valor: string): number {
   const limpo = valor.replace(/\./g, '').replace(',', '.')
   return Math.round(parseFloat(limpo) * 100)
 }
 
-// Centavos -> "350,00" (para preencher o input ao editar)
 function centavosParaReais(centavos: number): string {
   return (centavos / 100).toFixed(2).replace('.', ',')
 }
 
-// ISO -> "2026-11-20T08:00" (formato do input datetime-local, hora local)
 function paraInputLocal(iso: string): string {
   const d = new Date(iso)
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-const inputClass = 'w-full rounded-xl border border-line bg-canvas/40 px-3.5 py-2.5 focus:bg-white'
+const inputClass = 'mt-1 w-full rounded-xl border border-line bg-canvas/40 px-3.5 py-2.5 focus:bg-white'
+
+type FormLote = { nome: string; preco: string; inicio: string; fim: string }
+
+const formVazio = (): FormLote => ({ nome: '', preco: '', inicio: '', fim: '' })
+
+function loteParaForm(l: Lote): FormLote {
+  return {
+    nome: l.nome,
+    preco: centavosParaReais(l.preco_centavos),
+    inicio: paraInputLocal(l.data_inicio),
+    fim: paraInputLocal(l.data_fim),
+  }
+}
 
 export function LotesManager({ lotesIniciais }: { lotesIniciais: Lote[] }) {
   const router = useRouter()
-  const [nome, setNome] = useState('')
-  const [preco, setPreco] = useState('')
-  const [inicio, setInicio] = useState('')
-  const [fim, setFim] = useState('')
+  const [modalAberto, setModalAberto] = useState(false)
+  const [editando, setEditando] = useState<Lote | null>(null)
+  const [form, setForm] = useState<FormLote>(formVazio())
   const [erro, setErro] = useState('')
+  const [salvando, setSalvando] = useState(false)
+  const [confirmExcluir, setConfirmExcluir] = useState<Lote | null>(null)
 
-  // Edição inline
-  const [editId, setEditId] = useState<string | null>(null)
-  const [eNome, setENome] = useState('')
-  const [ePreco, setEPreco] = useState('')
-  const [eInicio, setEInicio] = useState('')
-  const [eFim, setEFim] = useState('')
-  const [eErro, setEErro] = useState('')
-
-  async function criar() {
+  function abrirNovo() {
+    setEditando(null)
+    setForm(formVazio())
     setErro('')
-    const centavos = reaisParaCentavos(preco)
+    setModalAberto(true)
+  }
+
+  function abrirEditar(lote: Lote) {
+    setEditando(lote)
+    setForm(loteParaForm(lote))
+    setErro('')
+    setModalAberto(true)
+  }
+
+  async function salvar() {
+    setErro('')
+    const centavos = reaisParaCentavos(form.preco)
     if (!Number.isFinite(centavos) || centavos < 0) {
       setErro('Preço inválido')
       return
     }
+    setSalvando(true)
+    const payload = {
+      ...(editando ? { id: editando.id, ativo: editando.ativo } : {}),
+      nome: form.nome,
+      preco_centavos: centavos,
+      data_inicio: new Date(form.inicio).toISOString(),
+      data_fim: new Date(form.fim).toISOString(),
+    }
     const res = await fetch('/api/admin/lotes', {
-      method: 'POST',
+      method: editando ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome,
-        preco_centavos: centavos,
-        data_inicio: new Date(inicio).toISOString(),
-        data_fim: new Date(fim).toISOString(),
-      }),
+      body: JSON.stringify(payload),
     })
     const data = await res.json()
+    setSalvando(false)
     if (!res.ok) {
       setErro(data.error ?? 'Erro')
       return
     }
-    setNome(''); setPreco(''); setInicio(''); setFim('')
-    router.refresh()
-  }
-
-  function abrirEdicao(lote: Lote) {
-    setEErro('')
-    setEditId(lote.id)
-    setENome(lote.nome)
-    setEPreco(centavosParaReais(lote.preco_centavos))
-    setEInicio(paraInputLocal(lote.data_inicio))
-    setEFim(paraInputLocal(lote.data_fim))
-  }
-
-  async function salvarEdicao(lote: Lote) {
-    setEErro('')
-    const centavos = reaisParaCentavos(ePreco)
-    if (!Number.isFinite(centavos) || centavos < 0) {
-      setEErro('Preço inválido')
-      return
-    }
-    const res = await fetch('/api/admin/lotes', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: lote.id,
-        nome: eNome,
-        preco_centavos: centavos,
-        data_inicio: new Date(eInicio).toISOString(),
-        data_fim: new Date(eFim).toISOString(),
-        ativo: lote.ativo,
-      }),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      setEErro(data.error ?? 'Erro ao salvar')
-      return
-    }
-    setEditId(null)
+    setModalAberto(false)
     router.refresh()
   }
 
@@ -118,7 +103,6 @@ export function LotesManager({ lotesIniciais }: { lotesIniciais: Lote[] }) {
   }
 
   async function excluir(id: string) {
-    if (!confirm('Excluir este lote?')) return
     const res = await fetch('/api/admin/lotes', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -129,110 +113,144 @@ export function LotesManager({ lotesIniciais }: { lotesIniciais: Lote[] }) {
       alert(data.error ?? 'Erro ao excluir')
       return
     }
+    setConfirmExcluir(null)
     router.refresh()
   }
 
   return (
     <div className="mt-6">
-      <div className="animate-fade-up rounded-2xl border border-line bg-white p-5 shadow-card">
-        <h2 className="font-bold text-brand">Novo lote</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input className={inputClass} placeholder="Nome (ex.: Lote Promocional)"
-            value={nome} onChange={(e) => setNome(e.target.value)} />
-          <input className={inputClass} placeholder="Preço (ex.: 150,00)"
-            value={preco} onChange={(e) => setPreco(e.target.value)} />
-          <label className="text-xs font-semibold text-ink/55">Início
-            <input type="datetime-local" className={`${inputClass} mt-1`}
-              value={inicio} onChange={(e) => setInicio(e.target.value)} />
-          </label>
-          <label className="text-xs font-semibold text-ink/55">Fim
-            <input type="datetime-local" className={`${inputClass} mt-1`}
-              value={fim} onChange={(e) => setFim(e.target.value)} />
-          </label>
-        </div>
-        {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
-        <button onClick={criar}
-          className="mt-4 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 font-bold uppercase text-brand transition hover:bg-accent-hover hover:text-on-dark">
-          <Plus size={18} /> Criar lote
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-ink/60">{lotesIniciais.length} lote(s) cadastrado(s)</p>
+        <button
+          type="button"
+          onClick={abrirNovo}
+          className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold uppercase text-brand transition hover:bg-accent-hover hover:text-on-dark"
+        >
+          <Plus size={16} /> Novo lote
         </button>
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-4 space-y-3">
         {lotesIniciais.map((l, i) => (
           <div
             key={l.id}
-            className="animate-fade-up rounded-2xl border border-line bg-white p-4 shadow-card"
-            style={{ animationDelay: `${i * 50}ms` }}
+            className="animate-fade-up flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 shadow-card transition hover:shadow-card-hover"
+            style={{ animationDelay: `${i * 40}ms` }}
           >
-            {editId === l.id ? (
-              <div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="text-xs font-semibold text-ink/55">Nome
-                    <input className={`${inputClass} mt-1`} value={eNome} onChange={(e) => setENome(e.target.value)} />
-                  </label>
-                  <label className="text-xs font-semibold text-ink/55">Preço (ex.: 150,00)
-                    <input className={`${inputClass} mt-1`} value={ePreco} onChange={(e) => setEPreco(e.target.value)} />
-                  </label>
-                  <label className="text-xs font-semibold text-ink/55">Início
-                    <input type="datetime-local" className={`${inputClass} mt-1`} value={eInicio} onChange={(e) => setEInicio(e.target.value)} />
-                  </label>
-                  <label className="text-xs font-semibold text-ink/55">Fim
-                    <input type="datetime-local" className={`${inputClass} mt-1`} value={eFim} onChange={(e) => setEFim(e.target.value)} />
-                  </label>
-                </div>
-                {eErro && <p className="mt-3 text-sm text-red-700">{eErro}</p>}
-                <div className="mt-4 flex gap-2">
-                  <button onClick={() => salvarEdicao(l)}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2 text-sm font-bold uppercase text-brand transition hover:bg-accent-hover hover:text-on-dark">
-                    <Save size={15} /> Salvar
-                  </button>
-                  <button onClick={() => setEditId(null)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink/60 transition hover:bg-surface">
-                    <X size={15} /> Cancelar
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="font-bold text-brand">
-                    {l.nome} — {formatBRL(l.preco_centavos)}
-                  </p>
-                  <p className="text-xs text-ink/55">
-                    {new Date(l.data_inicio).toLocaleString('pt-BR')} → {new Date(l.data_fim).toLocaleString('pt-BR')}
-                  </p>
-                  <span
-                    className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      l.ativo ? 'bg-brand/10 text-brand' : 'bg-surface text-ink/50'
-                    }`}
-                  >
-                    {l.ativo ? 'Ativo' : 'Inativo'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => abrirEdicao(l)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-semibold text-brand transition hover:bg-surface">
-                    <Pencil size={15} /> Editar
-                  </button>
-                  <button onClick={() => toggleAtivo(l)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-brand px-3 py-1.5 text-sm font-semibold text-brand transition hover:bg-brand hover:text-on-dark">
-                    <Power size={15} /> {l.ativo ? 'Desativar' : 'Ativar'}
-                  </button>
-                  <button onClick={() => excluir(l.id)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-red-400 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white">
-                    <Trash2 size={15} /> Excluir
-                  </button>
-                </div>
-              </div>
-            )}
+            <div>
+              <p className="font-bold text-brand">
+                {l.nome} — {formatBRL(l.preco_centavos)}
+              </p>
+              <p className="text-xs text-ink/55">
+                {new Date(l.data_inicio).toLocaleString('pt-BR')} → {new Date(l.data_fim).toLocaleString('pt-BR')}
+              </p>
+              <span
+                className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  l.ativo ? 'bg-brand/10 text-brand' : 'bg-surface text-ink/50'
+                }`}
+              >
+                {l.ativo ? 'Ativo' : 'Inativo'}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => abrirEditar(l)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-semibold text-brand transition hover:bg-surface"
+              >
+                <Pencil size={15} /> Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleAtivo(l)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-brand px-3 py-1.5 text-sm font-semibold text-brand transition hover:bg-brand hover:text-on-dark"
+              >
+                <Power size={15} /> {l.ativo ? 'Desativar' : 'Ativar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmExcluir(l)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-red-400 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white"
+              >
+                <Trash2 size={15} /> Excluir
+              </button>
+            </div>
           </div>
         ))}
         {lotesIniciais.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-line py-10 text-center text-ink/55">
-            Nenhum lote cadastrado.
-          </p>
+          <button
+            type="button"
+            onClick={abrirNovo}
+            className="w-full rounded-2xl border-2 border-dashed border-brand-muted/40 py-14 text-center text-sm font-semibold text-brand transition hover:border-brand hover:bg-surface/40"
+          >
+            <Plus size={20} className="mx-auto mb-2" />
+            Criar primeiro lote
+          </button>
         )}
       </div>
+
+      <Modal
+        aberto={modalAberto}
+        onFechar={() => setModalAberto(false)}
+        titulo={editando ? 'Editar lote' : 'Novo lote'}
+        largura="max-w-lg"
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="text-sm font-semibold text-ink/80 sm:col-span-2">
+            Nome
+            <input className={inputClass} placeholder="Ex.: Lote Promocional" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+          </label>
+          <label className="text-sm font-semibold text-ink/80 sm:col-span-2">
+            Preço (ex.: 150,00)
+            <input className={inputClass} value={form.preco} onChange={(e) => setForm({ ...form, preco: e.target.value })} />
+          </label>
+          <label className="text-sm font-semibold text-ink/80">
+            Início
+            <input type="datetime-local" className={inputClass} value={form.inicio} onChange={(e) => setForm({ ...form, inicio: e.target.value })} />
+          </label>
+          <label className="text-sm font-semibold text-ink/80">
+            Fim
+            <input type="datetime-local" className={inputClass} value={form.fim} onChange={(e) => setForm({ ...form, fim: e.target.value })} />
+          </label>
+        </div>
+        {erro && <p className="mt-3 text-sm text-red-700">{erro}</p>}
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            onClick={salvar}
+            disabled={salvando}
+            className="rounded-full bg-accent px-6 py-2.5 font-bold uppercase text-brand transition hover:bg-accent-hover hover:text-on-dark disabled:opacity-60"
+          >
+            {salvando ? 'Salvando…' : 'Salvar'}
+          </button>
+          <button type="button" onClick={() => setModalAberto(false)} className="rounded-full border border-line px-5 py-2.5 text-sm font-semibold text-ink/60 hover:bg-surface">
+            Cancelar
+          </button>
+        </div>
+      </Modal>
+
+      <Modal
+        aberto={Boolean(confirmExcluir)}
+        onFechar={() => setConfirmExcluir(null)}
+        titulo="Excluir lote"
+        largura="max-w-md"
+      >
+        <p className="text-sm text-ink/70">
+          Tem certeza que deseja excluir o lote <strong>{confirmExcluir?.nome}</strong>? Esta ação não pode ser desfeita.
+        </p>
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            onClick={() => confirmExcluir && excluir(confirmExcluir.id)}
+            className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700"
+          >
+            Excluir
+          </button>
+          <button type="button" onClick={() => setConfirmExcluir(null)} className="rounded-full border border-line px-5 py-2.5 text-sm font-semibold text-ink/60 hover:bg-surface">
+            Cancelar
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

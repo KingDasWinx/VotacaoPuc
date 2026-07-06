@@ -85,12 +85,30 @@ create table if not exists checkins (
 );
 create index if not exists idx_checkins_ingresso on checkins(ingresso_id);
 
+-- ---------- programacao (grade científica) ----------
+create table if not exists programacao (
+  id           uuid primary key default gen_random_uuid(),
+  dia          date not null,
+  hora_inicio  time not null,
+  hora_fim     time,
+  titulo       text not null,
+  palestrante  text,
+  descricao    text,
+  local_sala   text,
+  tipo         text not null default 'palestra'
+               check (tipo in ('palestra','mesa_redonda','coffee_break','abertura','encerramento','outro')),
+  ordem        int not null default 0,
+  created_at   timestamptz not null default now()
+);
+create index if not exists idx_programacao_dia_ordem on programacao(dia, ordem, hora_inicio);
+
 -- ---------- RLS: travar acesso anônimo (service role faz bypass) ----------
 alter table event_config enable row level security;
 alter table lotes        enable row level security;
 alter table pedidos      enable row level security;
 alter table ingressos    enable row level security;
 alter table checkins     enable row level security;
+alter table programacao  enable row level security;
 -- Nenhuma policy: somente a service-role key (server-side) acessa.
 
 -- ---------- Storage buckets ----------

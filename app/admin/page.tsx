@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { formatBRL } from '@/lib/money'
 import { PedidosTable, type PedidoRow } from '@/components/admin/PedidosTable'
 import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminQuickActions } from '@/components/admin/AdminQuickActions'
 import { Users, CircleCheck, Clock, CircleX, Wallet, Hourglass, Gauge } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -95,6 +96,8 @@ export default async function AdminDashboard() {
             </div>
           ))}
         </div>
+
+        <AdminQuickActions />
 
         <PedidosTable pedidos={pedidos} />
       </main>

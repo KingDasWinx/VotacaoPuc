@@ -43,7 +43,7 @@ export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; 
       const res = await fetch('/api/inscricao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ participantes }),
+        body: JSON.stringify({ participantes, aceitou_regulamento: true }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -161,16 +161,7 @@ export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; 
           {enviando ? 'Processando…' : <>Ir para pagamento <ArrowRight size={18} /></>}
         </button>
         <p className="mt-3 text-center text-xs text-ink/55">
-          Ao continuar, você concorda com o{' '}
-          <a
-            href="/regulamento"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-brand underline underline-offset-2 hover:text-brand-hover"
-          >
-            regulamento
-          </a>
-          .
+          Inscrição sujeita ao regulamento do evento (aceito anteriormente).
         </p>
       </div>
     </div>

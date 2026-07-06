@@ -2,14 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Tags, Settings, LogOut, Menu, X, ScanLine } from 'lucide-react'
+import { LayoutDashboard, Tags, Settings, LogOut, Menu, X, ScanLine, CalendarDays } from 'lucide-react'
 import { ExportMenu } from './ExportMenu'
 
-type Active = 'dashboard' | 'lotes' | 'config' | 'checkin'
+type Active = 'dashboard' | 'lotes' | 'config' | 'checkin' | 'programacao'
 
 const NAV: { key: Active; href: string; label: string; Icon: typeof LayoutDashboard }[] = [
   { key: 'dashboard', href: '/admin', label: 'Dashboard', Icon: LayoutDashboard },
   { key: 'checkin', href: '/admin/checkin', label: 'Check-in', Icon: ScanLine },
+  { key: 'programacao', href: '/admin/programacao', label: 'Programação', Icon: CalendarDays },
   { key: 'lotes', href: '/admin/lotes', label: 'Lotes', Icon: Tags },
   { key: 'config', href: '/admin/configuracoes', label: 'Configurações', Icon: Settings },
 ]

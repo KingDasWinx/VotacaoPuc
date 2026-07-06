@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { formatBRL } from '@/lib/money'
+import { InscricaoCTA } from '@/components/regulamento/RegulamentoGate'
 
 export function TicketBox({
   disponivel, loteNome, precoCentavos, inscricoesAbertas,
@@ -33,12 +34,9 @@ export function TicketBox({
                 <p className="mt-1 text-xs text-ink/50">por pessoa</p>
               </div>
             </div>
-            <Link
-              href="/inscricao"
-              className="mt-6 block rounded-full bg-accent py-3.5 text-center font-bold uppercase tracking-wide text-brand shadow-card transition hover:-translate-y-0.5 hover:bg-accent-hover hover:text-on-dark hover:shadow-card-hover active:translate-y-0"
-            >
+            <InscricaoCTA className="mt-6 block w-full rounded-full bg-accent py-3.5 text-center font-bold uppercase tracking-wide text-brand shadow-card transition hover:-translate-y-0.5 hover:bg-accent-hover hover:text-on-dark hover:shadow-card-hover active:translate-y-0">
               Comprar ingresso
-            </Link>
+            </InscricaoCTA>
           </>
         )}
         <Link

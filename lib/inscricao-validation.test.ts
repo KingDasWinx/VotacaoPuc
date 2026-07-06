@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { validateInscricao } from '@/lib/inscricao-validation'
 
 const ok = {
+  aceitou_regulamento: true,
   participantes: [
     { nome: 'Ana Souza', cpf: '529.982.247-25', data_nascimento: '1990-05-10', telefone: '(45) 99999-9999' },
   ],
@@ -15,6 +16,11 @@ describe('validateInscricao', () => {
       expect(r.participantes[0].cpf).toBe('52998224725')
       expect(r.participantes[0].telefone).toBe('45999999999')
     }
+  })
+  it('rejeita sem aceite do regulamento', () => {
+    const { aceitou_regulamento: _, ...semAceite } = ok
+    expect(validateInscricao(semAceite).ok).toBe(false)
+    expect(validateInscricao({ ...ok, aceitou_regulamento: false }).ok).toBe(false)
   })
   it('rejeita corpo sem participantes', () => {
     expect(validateInscricao({}).ok).toBe(false)

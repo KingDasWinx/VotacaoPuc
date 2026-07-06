@@ -85,6 +85,12 @@ export default async function HomePage() {
                 </p>
               )}
             </div>
+            <a
+              href="/programacao"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold uppercase text-brand transition hover:bg-accent-hover hover:text-on-dark"
+            >
+              Ver programação
+            </a>
           </section>
         </div>
 

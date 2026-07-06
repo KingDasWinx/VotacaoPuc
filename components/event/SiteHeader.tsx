@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 
 const LINKS = [
+  { href: '/programacao', label: 'Programação' },
   { href: '/regulamento', label: 'Regulamento' },
   { href: '/inscricao', label: 'Inscrição' },
 ]

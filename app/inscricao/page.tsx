@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getEventConfig, getCurrentLote } from '@/lib/event-data'
 import { CheckoutClient } from '@/components/checkout/CheckoutClient'
 import { SiteHeader } from '@/components/event/SiteHeader'
+import { InscricaoRegulamentoGuard } from '@/components/regulamento/RegulamentoGate'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,9 @@ export default async function InscricaoPage() {
           <h1 className="mt-1 text-3xl font-extrabold text-brand">Garanta seu ingresso</h1>
           <p className="mt-1 text-ink/60">{config.nome}</p>
         </div>
-        <CheckoutClient loteNome={lote.nome} precoCentavos={lote.preco_centavos} />
+        <InscricaoRegulamentoGuard>
+          <CheckoutClient loteNome={lote.nome} precoCentavos={lote.preco_centavos} />
+        </InscricaoRegulamentoGuard>
       </main>
     </>
   )

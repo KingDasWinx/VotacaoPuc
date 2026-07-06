@@ -21,7 +21,11 @@ export function validateInscricao(body: unknown): Result {
   if (typeof body !== 'object' || body === null) {
     return { ok: false, error: 'Corpo inválido' }
   }
-  const raw = (body as { participantes?: unknown }).participantes
+  const obj = body as Record<string, unknown>
+  if (obj.aceitou_regulamento !== true) {
+    return { ok: false, error: 'É necessário aceitar o regulamento do evento' }
+  }
+  const raw = obj.participantes
   if (!Array.isArray(raw) || raw.length === 0) {
     return { ok: false, error: 'Informe ao menos um participante' }
   }

@@ -35,3 +35,13 @@ export async function getLotes(): Promise<Lote[]> {
 export async function getCurrentLote(): Promise<Lote | null> {
   return selectCurrentLote(await getLotes(), new Date())
 }
+
+export async function getProgramacao() {
+  const { data } = await supabase
+    .from('programacao')
+    .select('id, dia, hora_inicio, hora_fim, titulo, palestrante, descricao, local_sala, tipo, ordem')
+    .order('dia', { ascending: true })
+    .order('ordem', { ascending: true })
+    .order('hora_inicio', { ascending: true })
+  return data ?? []
+}

@@ -22,3 +22,26 @@ export interface ParticipanteInput {
   data_nascimento: string // YYYY-MM-DD
   telefone: string
 }
+
+export const PROGRAMACAO_TIPOS = [
+  'palestra',
+  'mesa_redonda',
+  'coffee_break',
+  'abertura',
+  'encerramento',
+  'outro',
+] as const
+export type ProgramacaoTipo = (typeof PROGRAMACAO_TIPOS)[number]
+
+export interface ProgramacaoItem {
+  id: string
+  dia: string // YYYY-MM-DD
+  hora_inicio: string // HH:MM
+  hora_fim: string | null
+  titulo: string
+  palestrante: string | null
+  descricao: string | null
+  local_sala: string | null
+  tipo: ProgramacaoTipo
+  ordem: number
+}
