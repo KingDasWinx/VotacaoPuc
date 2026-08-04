@@ -37,17 +37,18 @@ export async function GET(request: NextRequest) {
   // participantes (credenciamento) — ingressos válidos de pedidos pagos
   const { data, error } = await supabase
     .from('ingressos')
-    .select('nome, cpf, data_nascimento, telefone, status, pedidos!inner(codigo, status)')
+    .select('nome, cpf, data_nascimento, telefone, categoria, status, pedidos!inner(codigo, status)')
     .eq('status', 'valido')
     .eq('pedidos.status', 'pago')
     .order('nome', { ascending: true })
   if (error) return NextResponse.json({ error: 'Erro ao exportar' }, { status: 500 })
   const rows: Rows = [
-    ['Nome', 'CPF', 'Nascimento', 'Telefone', 'Pedido'],
+    ['Nome', 'CPF', 'Nascimento', 'Telefone', 'Categoria', 'Pedido'],
     ...(data ?? []).map((i) => {
       const pedidoRel = i.pedidos as unknown as { codigo: string } | { codigo: string }[]
       const codigo = Array.isArray(pedidoRel) ? pedidoRel[0]?.codigo : pedidoRel?.codigo
-      return [i.nome, formatCpf(i.cpf), i.data_nascimento, i.telefone, codigo ?? '']
+      const categoria = i.categoria[0].toUpperCase() + i.categoria.slice(1)
+      return [i.nome, formatCpf(i.cpf), i.data_nascimento, i.telefone, categoria, codigo ?? '']
     }),
   ]
   return await serialize(rows, 'credenciamento', 'Credenciamento', formato)
