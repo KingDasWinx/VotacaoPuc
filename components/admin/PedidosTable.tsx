@@ -54,10 +54,17 @@ const FILTROS = [
   { id: 'cancelado', label: 'Cancelados' },
 ]
 
-function StatusPill({ status }: { status: string }) {
+function StatusPill({ status, temComprovante = false }: { status: string; temComprovante?: boolean }) {
   return (
-    <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_CLASSE[status] ?? ''}`}>
-      {status}
+    <span className="flex flex-wrap items-center gap-1.5">
+      <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_CLASSE[status] ?? ''}`}>
+        {status}
+      </span>
+      {status === 'pendente' && temComprovante && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+          <FileText size={13} /> Comprovante recebido
+        </span>
+      )}
     </span>
   )
 }
@@ -222,7 +229,7 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
                 <td className="px-4 py-3">{p.quantidade}</td>
                 <td className="px-4 py-3 text-ink/70">{p.lote_nome}</td>
                 <td className="px-4 py-3 font-semibold">{formatBRL(p.valor_total_centavos)}</td>
-                <td className="px-4 py-3"><StatusPill status={p.status} /></td>
+                <td className="px-4 py-3"><StatusPill status={p.status} temComprovante={p.tem_comprovante} /></td>
                 <td className="px-4 py-3 text-ink/35">
                   <ChevronRight size={18} />
                 </td>
@@ -243,7 +250,7 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
           >
             <div className="flex items-center justify-between">
               <span className="font-extrabold text-brand">{p.codigo}</span>
-              <StatusPill status={p.status} />
+              <StatusPill status={p.status} temComprovante={p.tem_comprovante} />
             </div>
             <p className="mt-1 truncate text-sm" title={p.comprador_nome}>{p.comprador_nome}</p>
             <p className="text-xs text-ink/55">{formatCpf(p.comprador_cpf)} · +55 {maskTelefone(p.comprador_telefone)}</p>
@@ -279,7 +286,7 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
                 <p className="text-xl font-extrabold text-brand">{selecionado.codigo}</p>
               </div>
               <div className="flex items-center gap-2">
-                <StatusPill status={selecionado.status} />
+                <StatusPill status={selecionado.status} temComprovante={selecionado.tem_comprovante} />
                 <button
                   onClick={() => setSelecionadoId(null)}
                   aria-label="Fechar"
