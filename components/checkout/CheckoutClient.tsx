@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatBRL } from '@/lib/money'
 import { maskCpf, maskTelefone } from '@/lib/masks'
+import type { CategoriaInscricao } from '@/lib/types'
 import { Plus, Trash2, User, ArrowRight } from 'lucide-react'
 
 interface Participante {
@@ -11,9 +12,10 @@ interface Participante {
   cpf: string
   data_nascimento: string
   telefone: string
+  categoria: CategoriaInscricao | ''
 }
 
-const vazio = (): Participante => ({ nome: '', cpf: '', data_nascimento: '', telefone: '' })
+const vazio = (): Participante => ({ nome: '', cpf: '', data_nascimento: '', telefone: '', categoria: '' })
 
 const inputClass =
   'w-full rounded-xl border border-line bg-canvas/40 px-4 py-3 text-base text-ink placeholder:text-ink/40 focus:bg-white'
@@ -125,6 +127,19 @@ export function CheckoutClient({ loteNome, precoCentavos }: { loteNome: string; 
                   onChange={(e) => update(i, 'telefone', maskTelefone(e.target.value))}
                 />
               </div>
+            </label>
+            <label className="text-xs font-semibold text-ink/55">
+              Categoria
+              <select
+                className={`${inputClass} mt-1`}
+                value={p.categoria}
+                onChange={(e) => update(i, 'categoria', e.target.value)}
+                required
+              >
+                <option value="" disabled>Selecione</option>
+                <option value="estudante">Estudante</option>
+                <option value="profissional">Profissional</option>
+              </select>
             </label>
           </div>
         </div>

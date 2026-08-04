@@ -1,5 +1,5 @@
 import { isValidCpf, normalizeCpf } from '@/lib/cpf'
-import type { ParticipanteInput } from '@/lib/types'
+import { isCategoriaInscricao, type ParticipanteInput } from '@/lib/types'
 
 const MAX_PARTICIPANTES = 10
 
@@ -43,6 +43,7 @@ export function validateInscricao(body: unknown): Result {
     const cpf = typeof p.cpf === 'string' ? normalizeCpf(p.cpf) : ''
     const dataNasc = typeof p.data_nascimento === 'string' ? p.data_nascimento : ''
     const telefone = typeof p.telefone === 'string' ? p.telefone.replace(/\D/g, '') : ''
+    const categoria = p.categoria
 
     if (nome.length < 2) return { ok: false, error: `Nome inválido para "${nome}"` }
     if (!isValidCpf(cpf)) return { ok: false, error: `CPF inválido: ${p.cpf}` }
@@ -52,7 +53,10 @@ export function validateInscricao(body: unknown): Result {
     if (telefone.length < 10 || telefone.length > 13) {
       return { ok: false, error: `Telefone inválido para ${nome}` }
     }
-    participantes.push({ nome, cpf, data_nascimento: dataNasc, telefone })
+    if (!isCategoriaInscricao(categoria)) {
+      return { ok: false, error: `Categoria inválida para ${nome}` }
+    }
+    participantes.push({ nome, cpf, data_nascimento: dataNasc, telefone, categoria })
   }
   return { ok: true, participantes }
 }

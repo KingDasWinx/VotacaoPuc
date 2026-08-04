@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
       cpf: p.cpf,
       data_nascimento: p.data_nascimento,
       telefone: p.telefone,
+      categoria: p.categoria,
       status: 'valido',
     }))
   )
