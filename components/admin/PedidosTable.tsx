@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { formatBRL } from '@/lib/money'
 import { formatCpf } from '@/lib/cpf'
 import { maskTelefone } from '@/lib/masks'
+import type { CategoriaInscricao, CategoriaParticipante } from '@/lib/types'
 import {
   Search, Check, Ban, RotateCcw, FileText, MessageCircle, ChevronRight, X,
 } from 'lucide-react'
@@ -22,7 +23,15 @@ export interface PedidoRow {
   tem_comprovante: boolean
   observacao_admin: string | null
   lote_nome: string
-  ingressos: { id: string; nome: string; cpf: string; data_nascimento: string; telefone: string; status: string }[]
+  ingressos: {
+    id: string
+    nome: string
+    cpf: string
+    data_nascimento: string
+    telefone: string
+    categoria: CategoriaParticipante
+    status: string
+  }[]
 }
 
 // "1990-05-20" -> "20/05/1990" (sem problemas de fuso, já que é data pura)
@@ -114,6 +123,28 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
     })
     setOcupado(false)
     router.refresh()
+  }
+
+  async function setCategoria(id: string, nome: string, categoria: CategoriaInscricao) {
+    if (!confirm(`Você está alterando a categoria de ${nome} para ${categoria}. Deseja continuar?`)) return
+    setOcupado(true)
+    try {
+      const res = await fetch(`/api/admin/ingressos/${id}/categoria`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoria }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error ?? 'Falha ao atualizar categoria')
+        return
+      }
+      router.refresh()
+    } catch {
+      alert('Erro de conexão ao atualizar categoria')
+    } finally {
+      setOcupado(false)
+    }
   }
 
   async function verComprovante(pedidoId: string) {
@@ -362,6 +393,20 @@ export function PedidosTable({ pedidos }: { pedidos: PedidoRow[] }) {
                         <p className="mt-1 text-sm text-ink/70">CPF: {formatCpf(ing.cpf)}</p>
                         <p className="text-sm text-ink/70">Nascimento: {formatData(ing.data_nascimento)}</p>
                         <p className="text-sm text-ink/70">Telefone: +55 {maskTelefone(ing.telefone)}</p>
+                        <label className="mt-2 block text-sm text-ink/70">
+                          Categoria
+                          <select
+                            aria-label={`Categoria de ${ing.nome}`}
+                            className="mt-1 w-full rounded-lg border border-line bg-white px-2 py-1.5 text-sm text-ink"
+                            value={ing.categoria}
+                            disabled={ocupado}
+                            onChange={(e) => setCategoria(ing.id, ing.nome, e.target.value as CategoriaInscricao)}
+                          >
+                            <option value="pendente" disabled>Pendente</option>
+                            <option value="estudante">Estudante</option>
+                            <option value="profissional">Profissional</option>
+                          </select>
+                        </label>
                       </div>
                       <button
                         disabled={ocupado}

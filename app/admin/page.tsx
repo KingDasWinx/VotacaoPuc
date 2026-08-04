@@ -17,7 +17,7 @@ export default async function AdminDashboard() {
   const { data: pedidosData } = await supabase
     .from('pedidos')
     .select(
-      'id, codigo, comprador_nome, comprador_cpf, comprador_telefone, quantidade, valor_total_centavos, status, metodo_comprovante, comprovante_path, observacao_admin, created_at, lotes(nome), ingressos(id, nome, cpf, data_nascimento, telefone, status)'
+      'id, codigo, comprador_nome, comprador_cpf, comprador_telefone, quantidade, valor_total_centavos, status, metodo_comprovante, comprovante_path, observacao_admin, created_at, lotes(nome), ingressos(id, nome, cpf, data_nascimento, telefone, categoria, status)'
     )
     .order('created_at', { ascending: false })
 
