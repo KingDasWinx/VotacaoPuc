@@ -4,6 +4,14 @@ export type PedidoStatus = (typeof PEDIDO_STATUS)[number]
 export const INGRESSO_STATUS = ['valido', 'cancelado'] as const
 export type IngressoStatus = (typeof INGRESSO_STATUS)[number]
 
+export const CATEGORIAS_PARTICIPANTE = ['pendente', 'estudante', 'profissional'] as const
+export type CategoriaParticipante = (typeof CATEGORIAS_PARTICIPANTE)[number]
+export type CategoriaInscricao = Exclude<CategoriaParticipante, 'pendente'>
+
+export function isCategoriaInscricao(value: unknown): value is CategoriaInscricao {
+  return value === 'estudante' || value === 'profissional'
+}
+
 export const METODO_COMPROVANTE = ['upload', 'whatsapp', 'nenhum'] as const
 export type MetodoComprovante = (typeof METODO_COMPROVANTE)[number]
 
@@ -21,6 +29,7 @@ export interface ParticipanteInput {
   cpf: string // 11 dígitos
   data_nascimento: string // YYYY-MM-DD
   telefone: string
+  categoria: CategoriaInscricao
 }
 
 export const PROGRAMACAO_TIPOS = [

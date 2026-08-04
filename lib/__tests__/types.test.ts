@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Lote, ParticipanteInput } from '@/lib/types'
-import { PEDIDO_STATUS, INGRESSO_STATUS } from '@/lib/types'
+import { CATEGORIAS_PARTICIPANTE, PEDIDO_STATUS, INGRESSO_STATUS, isCategoriaInscricao } from '@/lib/types'
 
 describe('types', () => {
   it('expõe os status de pedido', () => {
@@ -8,6 +8,12 @@ describe('types', () => {
   })
   it('expõe os status de ingresso', () => {
     expect(INGRESSO_STATUS).toEqual(['valido', 'cancelado'])
+  })
+  it('expõe e valida as categorias de participante', () => {
+    expect(CATEGORIAS_PARTICIPANTE).toEqual(['pendente', 'estudante', 'profissional'])
+    expect(isCategoriaInscricao('estudante')).toBe(true)
+    expect(isCategoriaInscricao('profissional')).toBe(true)
+    expect(isCategoriaInscricao('pendente')).toBe(false)
   })
   it('aceita um Lote bem formado', () => {
     const lote: Lote = {
@@ -19,6 +25,7 @@ describe('types', () => {
   it('aceita um ParticipanteInput bem formado', () => {
     const p: ParticipanteInput = {
       nome: 'Ana', cpf: '12345678909', data_nascimento: '1990-01-01', telefone: '45999999999',
+      categoria: 'estudante',
     }
     expect(p.cpf).toHaveLength(11)
   })

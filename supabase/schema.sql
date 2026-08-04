@@ -69,6 +69,8 @@ create table if not exists ingressos (
   cpf              text not null,
   data_nascimento  date not null,
   telefone         text not null,
+  categoria        text not null default 'pendente'
+                   check (categoria in ('pendente','estudante','profissional')),
   status           text not null default 'valido'
                    check (status in ('valido','cancelado')),
   checkin_em       timestamptz,
