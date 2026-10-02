@@ -7,6 +7,7 @@ import AlreadyVotedScreen from './AlreadyVotedScreen'
 import CandidateList from './CandidateList'
 import ConfirmModal from './ConfirmModal'
 import SuccessScreen from './SuccessScreen'
+import { PatrocinadoresFaixa } from '@/components/Patrocinadores'
 
 type Screen = 'loading' | 'blocked' | 'ended' | 'already-voted' | 'voting' | 'confirming' | 'success'
 
@@ -118,10 +119,12 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
   }
 
   if (screen === 'loading') return null
-  if (screen === 'blocked') return <BlockedScreen votacaoInicio={config.votacao_inicio} onOpen={fetchData} />
-  if (screen === 'ended') return <BlockedScreen votacaoInicio={config.votacao_inicio} ended />
-  if (screen === 'already-voted') return <AlreadyVotedScreen />
-  if (screen === 'success') return <SuccessScreen />
+  const status =
+    screen === 'blocked' ? <BlockedScreen votacaoInicio={config.votacao_inicio} onOpen={fetchData} /> :
+    screen === 'ended' ? <BlockedScreen votacaoInicio={config.votacao_inicio} ended /> :
+    screen === 'already-voted' ? <AlreadyVotedScreen /> :
+    screen === 'success' ? <SuccessScreen /> : null
+  if (status) return <>{status}<PatrocinadoresFaixa /></>
 
   return (
     <>
@@ -153,6 +156,7 @@ export default function VotingClient({ config: initialConfig, candidatos: initia
         {/* Right column — scrollable candidate list */}
         <div className="md:flex-1 md:overflow-y-auto pb-24 md:pb-4">
           <CandidateList candidatos={candidatos} selectedId={selectedId} onSelect={setSelectedId} />
+          <PatrocinadoresFaixa />
         </div>
       </div>
 

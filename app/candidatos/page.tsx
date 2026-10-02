@@ -1,6 +1,7 @@
 import TopBar from '@/components/layout/TopBar'
 import Header from '@/components/layout/Header'
 import RegisterClient from '@/components/candidatos/RegisterClient'
+import { PatrocinadoresFaixa } from '@/components/Patrocinadores'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,6 +58,7 @@ export default async function CandidatosPage({
           </div>
         </div>
       </div>
+      <PatrocinadoresFaixa />
     </>
   )
 }
