@@ -8,6 +8,7 @@ const LINKS = [
   { href: '/programacao', label: 'Programação' },
   { href: '/regulamento', label: 'Regulamento' },
   { href: '/inscricao', label: 'Inscrição' },
+  { href: '/patrocinadores', label: 'Patrocinadores' },
 ]
 
 export function SiteHeader() {

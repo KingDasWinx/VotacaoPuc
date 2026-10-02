@@ -1,4 +1,5 @@
 import { SiteHeader } from '@/components/event/SiteHeader'
+import { PatrocinadoresFaixa } from '@/components/event/Patrocinadores'
 import { ProgramacaoTimeline } from '@/components/programacao/ProgramacaoTimeline'
 import { getProgramacao } from '@/lib/event-data'
 import { CalendarDays } from 'lucide-react'
@@ -30,6 +31,7 @@ export default async function ProgramacaoPage() {
           <ProgramacaoTimeline itens={itens} />
         </div>
       </main>
+      <PatrocinadoresFaixa />
     </>
   )
 }

@@ -6,6 +6,7 @@ import { qrDataUrl } from '@/lib/qr'
 import { formatBRL } from '@/lib/money'
 import { PagamentoClient } from '@/components/pagamento/PagamentoClient'
 import { SiteHeader } from '@/components/event/SiteHeader'
+import { PatrocinadoresFaixa } from '@/components/event/Patrocinadores'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,6 +73,7 @@ export default async function PedidoPage({ params }: { params: { codigo: string 
           ingressos={ingressos}
         />
       </main>
+      <PatrocinadoresFaixa />
     </>
   )
 }

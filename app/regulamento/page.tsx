@@ -1,4 +1,5 @@
 import { SiteHeader } from '@/components/event/SiteHeader'
+import { PatrocinadoresFaixa } from '@/components/event/Patrocinadores'
 import { RegulamentoView } from '@/components/regulamento/RegulamentoView'
 
 export const metadata = { title: 'Regulamento' }
@@ -10,6 +11,7 @@ export default function RegulamentoPage() {
       <main className="mx-auto max-w-2xl px-5 py-10">
         <RegulamentoView />
       </main>
+      <PatrocinadoresFaixa />
     </>
   )
 }

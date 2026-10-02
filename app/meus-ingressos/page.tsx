@@ -1,5 +1,6 @@
 import { MeusIngressosClient } from '@/components/ingressos/MeusIngressosClient'
 import { SiteHeader } from '@/components/event/SiteHeader'
+import { PatrocinadoresFaixa } from '@/components/event/Patrocinadores'
 
 export const metadata = { title: 'Meus ingressos' }
 
@@ -15,6 +16,7 @@ export default function MeusIngressosPage() {
         </div>
         <MeusIngressosClient />
       </main>
+      <PatrocinadoresFaixa />
     </>
   )
 }

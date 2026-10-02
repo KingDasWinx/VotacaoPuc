@@ -2,6 +2,7 @@ import { getEventConfig, getCurrentLote } from '@/lib/event-data'
 import { Hero } from '@/components/event/Hero'
 import { TicketBox } from '@/components/event/TicketBox'
 import { SiteHeader } from '@/components/event/SiteHeader'
+import { PatrocinadoresFaixa } from '@/components/event/Patrocinadores'
 import { Ear, Activity, FlaskConical, CalendarDays, MapPin } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -93,6 +94,8 @@ export default async function HomePage() {
             </a>
           </section>
         </div>
+
+        <PatrocinadoresFaixa />
 
         <footer className="border-t border-line py-8 text-center text-sm text-ink/55">
           {config.nome}
